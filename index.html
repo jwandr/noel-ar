@@ -457,28 +457,70 @@ function processingToScreen(x,y) {
 
 async function loadComputerVision() {
 
-  cvStatus.textContent = "Initialising OpenCV...";
+  cvStatus.textContent = "Loading computer vision...";
 
-  const start = Date.now();
+  return new Promise((resolve, reject) => {
 
-  while (!window.cv) {
+    let finished = false;
 
-    if (Date.now()-start > 60000) {
-      throw new Error("OpenCV loading timed out.");
+    const timeout = setTimeout(() => {
+      finish(new Error("OpenCV initialisation timed out."));
+    }, 60000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      window.removeEventListener("opencv-ready", ready);
+      window.removeEventListener("opencv-load-error", failed);
     }
 
-    await new Promise(resolve => setTimeout(resolve,100));
-  }
+    async function finish(error) {
 
-  CV = await window.cv;
+      if (finished) return;
+      finished = true;
+      cleanup();
 
-  if (!CV || !CV.Mat) {
-    throw new Error("OpenCV failed to initialise.");
-  }
+      if (error) {
+        reject(error);
+        return;
+      }
 
-  cvStatus.textContent = "COMPUTER VISION ONLINE";
+      try {
+        const candidate = window.cv;
 
-  return true;
+        CV = candidate &&
+          typeof candidate.then === "function"
+          ? await candidate
+          : candidate;
+
+        if (!CV || typeof CV.Mat !== "function") {
+          throw new Error("OpenCV runtime is incomplete.");
+        }
+
+        cvStatus.textContent = "COMPUTER VISION ONLINE";
+        resolve(true);
+
+      } catch (err) {
+        reject(err);
+      }
+    }
+
+    function ready() {
+      finish(null);
+    }
+
+    function failed() {
+      finish(new Error("OpenCV script failed to download."));
+    }
+
+    window.addEventListener("opencv-ready", ready);
+    window.addEventListener("opencv-load-error", failed);
+
+    // Handle an already initialised runtime.
+    if (window.cv && typeof window.cv.Mat === "function") {
+      ready();
+    }
+
+  });
 }
 
 // =====================================================
@@ -509,7 +551,12 @@ async function startCamera() {
 
     cameraActive = true;
 
+    // Show the camera immediately.
     welcome.classList.add("hidden");
+
+    trackingStatus.textContent = "LOADING VISION";
+    instruction.textContent =
+      "Camera active. Initialising visual tracking...";
 
     await loadComputerVision();
 
