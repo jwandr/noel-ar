@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>N.O.E.L. | Emoji Liaison Field Operations</title>
+<title>N.O.E.L. | Field Operations AR 0.2</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -23,10 +23,9 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: none;
 }
 
-#scene {
+#stage {
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -39,11 +38,10 @@ body {
   font-size: 100px;
   transform: translate(-50%, -50%);
   display: none;
-  filter: drop-shadow(0 12px 12px #0008);
-  transform-origin: center;
-  user-select: none;
+  filter: drop-shadow(0 12px 12px #0009);
   pointer-events: none;
   will-change: left, top, transform;
+  user-select: none;
 }
 
 #shadow {
@@ -52,9 +50,10 @@ body {
   height: 17px;
   border-radius: 50%;
   background: #0008;
-  filter: blur(8px);
+  filter: blur(9px);
   transform: translate(-50%, -50%);
   display: none;
+  pointer-events: none;
 }
 
 #hud {
@@ -63,7 +62,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 24px 18px 30px;
+  padding: 25px 18px 26px;
   pointer-events: none;
 }
 
@@ -78,23 +77,31 @@ header {
 }
 
 .brand {
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 3px;
-  font-weight: 800;
+  font-weight: 900;
+}
+
+.subbrand {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #9aafc4;
+  margin-top: 4px;
 }
 
 .status {
   font-size: 10px;
   letter-spacing: 1px;
   color: #65e4d0;
+  text-align: right;
 }
 
 .panel {
   align-self: center;
   width: 100%;
   max-width: 360px;
-  padding: 17px;
-  background: #081321e8;
+  padding: 19px;
+  background: #081321ed;
   border: 1px solid #34536b;
   border-radius: 13px;
   text-align: center;
@@ -102,8 +109,8 @@ header {
 }
 
 h1 {
-  font-size: 21px;
-  margin: 7px 0;
+  font-size: 22px;
+  margin: 8px 0;
 }
 
 p {
@@ -115,19 +122,23 @@ p {
 button {
   border: 0;
   border-radius: 8px;
-  padding: 13px 16px;
+  padding: 13px 14px;
   background: #5ce0c7;
   color: #07141b;
   font-weight: 800;
   cursor: pointer;
   width: 100%;
-  margin-top: 9px;
-  font-size: 13px;
+  margin-top: 8px;
+  font-size: 12px;
 }
 
 button.secondary {
   background: #24364a;
   color: white;
+}
+
+button:disabled {
+  opacity: .45;
 }
 
 footer {
@@ -139,10 +150,10 @@ footer {
 
 #instruction {
   font-size: 12px;
-  background: #081321dc;
+  background: #081321e8;
   padding: 12px;
   border-radius: 8px;
-  margin-bottom: 5px;
+  line-height: 1.4;
 }
 
 .controls {
@@ -155,22 +166,20 @@ footer {
   margin: 0;
 }
 
-#cameraHint {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 12px;
-  color: white;
-  text-align: center;
-  pointer-events: none;
-  width: 85%;
+#trackingInfo {
+  display: inline-block;
+  background: #081321e8;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-size: 10px;
+  color: #b5c4d5;
+  margin-top: 8px;
 }
 
 #reticle {
   position: absolute;
-  width: 35px;
-  height: 35px;
+  width: 38px;
+  height: 38px;
   border: 1px solid #5ce0c7;
   border-radius: 50%;
   transform: translate(-50%, -50%);
@@ -179,6 +188,31 @@ footer {
 }
 
 .hidden { display: none !important; }
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#flash.active {
+  animation: flash .35s ease-out;
+}
+
+@keyframes flash {
+  0% { opacity: .8; }
+  100% { opacity: 0; }
+}
+
+#cvStatus {
+  color: #8da5bb;
+  font-size: 10px;
+  margin-top: 8px;
+}
+
 </style>
 </head>
 
@@ -186,322 +220,891 @@ footer {
 
 <video id="camera" autoplay playsinline muted></video>
 
-<div id="scene">
+<div id="stage">
   <div id="shadow"></div>
   <div id="character">🔭</div>
   <div id="reticle"></div>
 </div>
 
-<div id="cameraHint">
-  CAMERA VIEW INITIALISING
-</div>
+<div id="flash"></div>
 
 <div id="hud">
 
   <header>
     <div>
       <div class="brand">N.O.E.L.</div>
-      <div style="font-size:9px;letter-spacing:2px;color:#9aafc4">
-        FIELD OPERATIONS
-      </div>
+      <div class="subbrand">FIELD OPERATIONS</div>
     </div>
-    <div class="status" id="trackingStatus">
-      SYSTEM STANDBY
+
+    <div>
+      <div class="status" id="trackingStatus">SYSTEM STANDBY</div>
+      <div id="trackingInfo">VISUAL TRACKING OFFLINE</div>
     </div>
   </header>
 
   <div class="panel" id="welcome">
-    <div style="font-size:30px">🔭</div>
+
+    <div style="font-size:36px">🔭</div>
+
     <div class="status">CLASSIFIED FIELD OPERATION 001</div>
+
     <h1>The Telescope</h1>
+
     <p>
       An unidentified emoji has been detected in your vicinity.
-      Activate your field camera to investigate.
+      Activate the field camera and establish a visual tracking reference.
     </p>
+
     <button id="startButton">ACTIVATE FIELD CAMERA</button>
+
+    <div id="cvStatus">Loading computer vision system...</div>
+
     <p style="font-size:10px">
-      Camera and motion permissions required.
+      Camera and visual tracking permissions required.
     </p>
+
   </div>
 
   <footer>
+
     <div id="instruction">
-      Awaiting camera activation...
+      Awaiting field camera activation.
     </div>
 
     <div class="controls">
       <button class="secondary" id="resetButton">RESET</button>
       <button id="photoButton">CAPTURE EVIDENCE</button>
     </div>
+
   </footer>
 
 </div>
 
+<!-- Free OpenCV.js computer vision library -->
+<script async src="https://docs.opencv.org/4.13.0/opencv.js"></script>
+
 <script>
+
+// =====================================================
+// N.O.E.L. FIELD OPERATIONS
+// VERSION 0.2
+// VISUAL FEATURE TRACKING
+// =====================================================
+
 const video = document.getElementById("camera");
+const stage = document.getElementById("stage");
 const character = document.getElementById("character");
 const shadow = document.getElementById("shadow");
 const welcome = document.getElementById("welcome");
 const instruction = document.getElementById("instruction");
-const status = document.getElementById("trackingStatus");
-const hint = document.getElementById("cameraHint");
+const trackingStatus = document.getElementById("trackingStatus");
+const trackingInfo = document.getElementById("trackingInfo");
+const cvStatus = document.getElementById("cvStatus");
 const reticle = document.getElementById("reticle");
 
+let CV = null;
 let cameraActive = false;
 let placed = false;
-let motionActive = false;
+let trackingReady = false;
+
+let prevGray = null;
+let totalH = null;
 
 let anchorX = 0;
 let anchorY = 0;
 
-let baseAlpha = null;
-let baseBeta = null;
-let baseGamma = null;
-
 let currentX = 0;
 let currentY = 0;
+let currentScale = 1;
 
-let latestMotion = null;
+let lastFrameTime = 0;
+let lostFrames = 0;
+let featureCount = 0;
+let trackingConfidence = 0;
 
-const clamp = (value, min, max) =>
-  Math.max(min, Math.min(max, value));
+let processingCanvas = document.createElement("canvas");
+let processingContext = processingCanvas.getContext("2d", {
+  willReadFrequently: true
+});
 
-function angleDifference(a, b) {
-  return ((a - b + 540) % 360) - 180;
+let processWidth = 360;
+let processHeight = 270;
+
+let lastProcessedWidth = 0;
+let lastProcessedHeight = 0;
+
+// =====================================================
+// MATRIX UTILITIES
+// =====================================================
+
+function identityMatrix() {
+  return [
+    1,0,0,
+    0,1,0,
+    0,0,1
+  ];
 }
 
+function multiplyMatrix(a, b) {
+  const result = new Array(9).fill(0);
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      for (let k = 0; k < 3; k++) {
+        result[r*3+c] += a[r*3+k] * b[k*3+c];
+      }
+    }
+  }
+
+  const normaliser = result[8] || 1;
+
+  return result.map(v => v / normaliser);
+}
+
+function transformPoint(matrix, x, y) {
+  const denominator =
+    matrix[6]*x + matrix[7]*y + matrix[8];
+
+  if (Math.abs(denominator) < 0.00001) return null;
+
+  const tx =
+    (matrix[0]*x + matrix[1]*y + matrix[2]) /
+    denominator;
+
+  const ty =
+    (matrix[3]*x + matrix[4]*y + matrix[5]) /
+    denominator;
+
+  if (!Number.isFinite(tx) || !Number.isFinite(ty)) {
+    return null;
+  }
+
+  return {x:tx, y:ty};
+}
+
+// =====================================================
+// CAMERA COORDINATE CONVERSION
+// =====================================================
+
+function getCameraMapping() {
+
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+
+  const scale = Math.max(
+    window.innerWidth / vw,
+    window.innerHeight / vh
+  );
+
+  const renderedWidth = vw * scale;
+  const renderedHeight = vh * scale;
+
+  const offsetX = (window.innerWidth-renderedWidth)/2;
+  const offsetY = (window.innerHeight-renderedHeight)/2;
+
+  return {
+    scale,
+    offsetX,
+    offsetY,
+    vw,
+    vh
+  };
+}
+
+function screenToProcessing(x,y) {
+
+  const map = getCameraMapping();
+
+  const videoX = (x-map.offsetX)/map.scale;
+  const videoY = (y-map.offsetY)/map.scale;
+
+  return {
+    x: videoX/video.videoWidth*processWidth,
+    y: videoY/video.videoHeight*processHeight
+  };
+}
+
+function processingToScreen(x,y) {
+
+  const map = getCameraMapping();
+
+  const videoX = x/processWidth*video.videoWidth;
+  const videoY = y/processHeight*video.videoHeight;
+
+  return {
+    x: videoX*map.scale+map.offsetX,
+    y: videoY*map.scale+map.offsetY
+  };
+}
+
+// =====================================================
+// LOAD OPENCV
+// =====================================================
+
+async function loadComputerVision() {
+
+  cvStatus.textContent = "Initialising OpenCV...";
+
+  const start = Date.now();
+
+  while (!window.cv) {
+
+    if (Date.now()-start > 60000) {
+      throw new Error("OpenCV loading timed out.");
+    }
+
+    await new Promise(resolve => setTimeout(resolve,100));
+  }
+
+  CV = await window.cv;
+
+  if (!CV || !CV.Mat) {
+    throw new Error("OpenCV failed to initialise.");
+  }
+
+  cvStatus.textContent = "COMPUTER VISION ONLINE";
+
+  return true;
+}
+
+// =====================================================
+// CAMERA STARTUP
+// =====================================================
+
 async function startCamera() {
+
   try {
+
+    document.getElementById("startButton").disabled = true;
+
+    trackingStatus.textContent = "ACTIVATING";
+
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
+        facingMode: {ideal:"environment"},
+        width: {ideal:960},
+        height: {ideal:720},
+        frameRate: {ideal:24,max:30}
       },
-      audio: false
+      audio:false
     });
 
     video.srcObject = stream;
+
     await video.play();
 
     cameraActive = true;
-    video.style.display = "block";
-    hint.style.display = "none";
 
     welcome.classList.add("hidden");
 
-    status.textContent = "CAMERA ACTIVE";
-    instruction.textContent =
-      "Move your phone slowly, then tap where you want the Telescope to appear.";
+    await loadComputerVision();
 
-    await enableMotion();
-
-  } catch (error) {
-    alert(
-      "Camera access failed. Please allow camera permissions and open this page using HTTPS in Safari."
+    processHeight = Math.round(
+      processWidth *
+      video.videoHeight/video.videoWidth
     );
+
+    processingCanvas.width = processWidth;
+    processingCanvas.height = processHeight;
+
+    trackingReady = true;
+
+    trackingStatus.textContent = "SCANNING ENVIRONMENT";
+
+    instruction.textContent =
+      "Move your phone slowly across the surroundings. Tap a suitable textured area to deploy the Telescope.";
+
+    requestAnimationFrame(trackFrame);
+
+  } catch(error) {
+
     console.error(error);
+
+    alert(
+      "Unable to start the camera or computer vision system. Check your internet connection, camera permissions and HTTPS address."
+    );
+
+    document.getElementById("startButton").disabled = false;
+    trackingStatus.textContent = "SYSTEM ERROR";
+
   }
 }
 
-async function enableMotion() {
-  try {
-    if (
-      typeof DeviceOrientationEvent !== "undefined" &&
-      typeof DeviceOrientationEvent.requestPermission === "function"
-    ) {
-      const permission =
-        await DeviceOrientationEvent.requestPermission();
+// =====================================================
+// IMAGE PROCESSING
+// =====================================================
 
-      if (permission !== "granted") {
-        throw new Error("Motion permission denied");
-      }
+function captureGrayFrame() {
+
+  processingContext.drawImage(
+    video,
+    0,0,
+    processWidth,
+    processHeight
+  );
+
+  const imageData = processingContext.getImageData(
+    0,0,
+    processWidth,
+    processHeight
+  );
+
+  const source = CV.matFromImageData(imageData);
+
+  const gray = new CV.Mat();
+
+  CV.cvtColor(source,gray,CV.COLOR_RGBA2GRAY);
+
+  source.delete();
+
+  return gray;
+}
+
+// =====================================================
+// VISUAL FEATURE TRACKING
+// =====================================================
+
+function trackFrame(timestamp) {
+
+  requestAnimationFrame(trackFrame);
+
+  if (!cameraActive || !trackingReady) return;
+
+  // Process approximately 10 frames per second.
+  if (timestamp-lastFrameTime < 100) return;
+
+  lastFrameTime = timestamp;
+
+  let gray = null;
+
+  try {
+
+    gray = captureGrayFrame();
+
+    if (!prevGray) {
+      prevGray = gray.clone();
+      gray.delete();
+      return;
     }
 
-    window.addEventListener("deviceorientation", onMotion);
-    motionActive = true;
+    // Detect visual features in the previous frame.
+    const prevPoints = new CV.Mat();
 
-    instruction.textContent =
-      "Motion sensors ready. Tap the camera view to place your character.";
+    CV.goodFeaturesToTrack(
+      prevGray,
+      prevPoints,
+      120,
+      0.01,
+      8,
+      new CV.Mat(),
+      3,
+      false,
+      0.04
+    );
 
-  } catch (error) {
-    instruction.textContent =
-      "Camera ready. Motion tracking unavailable; the character will remain screen-positioned.";
-    status.textContent = "CAMERA ONLY";
-    console.warn(error);
+    const count = prevPoints.rows;
+
+    if (count < 8) {
+
+      prevPoints.delete();
+
+      handleTrackingLoss(gray);
+
+      gray.delete();
+
+      return;
+    }
+
+    // Track features into the current frame.
+    const nextPoints = new CV.Mat();
+    const status = new CV.Mat();
+    const errors = new CV.Mat();
+
+    CV.calcOpticalFlowPyrLK(
+      prevGray,
+      gray,
+      prevPoints,
+      nextPoints,
+      status,
+      errors,
+      new CV.Size(21,21),
+      3,
+      new CV.TermCriteria(
+        CV.TERM_CRITERIA_EPS | CV.TERM_CRITERIA_COUNT,
+        30,
+        0.01
+      )
+    );
+
+    const validOld = [];
+    const validNew = [];
+
+    for (let i=0;i<count;i++) {
+
+      if (status.data[i] !== 1) continue;
+
+      if (errors.data32F[i] > 35) continue;
+
+      const ox = prevPoints.data32F[i*2];
+      const oy = prevPoints.data32F[i*2+1];
+
+      const nx = nextPoints.data32F[i*2];
+      const ny = nextPoints.data32F[i*2+1];
+
+      if (
+        !Number.isFinite(nx) ||
+        !Number.isFinite(ny)
+      ) continue;
+
+      validOld.push({x:ox,y:oy});
+      validNew.push({x:nx,y:ny});
+
+    }
+
+    prevPoints.delete();
+    nextPoints.delete();
+    status.delete();
+    errors.delete();
+
+    featureCount = validOld.length;
+
+    // Not enough features to calculate a stable transform.
+    if (validOld.length < 8) {
+
+      handleTrackingLoss(gray);
+
+      gray.delete();
+
+      return;
+    }
+
+    const src = new CV.Mat(
+      validOld.length,
+      1,
+      CV.CV_32FC2
+    );
+
+    const dst = new CV.Mat(
+      validNew.length,
+      1,
+      CV.CV_32FC2
+    );
+
+    for (let i=0;i<validOld.length;i++) {
+
+      src.data32F[i*2] = validOld[i].x;
+      src.data32F[i*2+1] = validOld[i].y;
+
+      dst.data32F[i*2] = validNew[i].x;
+      dst.data32F[i*2+1] = validNew[i].y;
+
+    }
+
+    const inlierMask = new CV.Mat();
+
+    // Estimate camera-induced scene movement.
+    const stepH = CV.findHomography(
+      src,
+      dst,
+      CV.RANSAC,
+      3,
+      inlierMask
+    );
+
+    let inliers = 0;
+
+    for (let i=0;i<inlierMask.rows*inlierMask.cols;i++) {
+      if (inlierMask.data[i]) inliers++;
+    }
+
+    const ratio = inliers/validOld.length;
+
+    src.delete();
+    dst.delete();
+    inlierMask.delete();
+
+    if (
+      stepH.empty() ||
+      inliers < 8 ||
+      ratio < 0.30
+    ) {
+
+      if (!stepH.empty()) stepH.delete();
+
+      handleTrackingLoss(gray);
+
+      gray.delete();
+
+      return;
+    }
+
+    // Convert OpenCV matrix to ordinary JavaScript values.
+    const stepValues = stepH.data64F
+      ? Array.from(stepH.data64F)
+      : Array.from(stepH.data32F);
+
+    stepH.delete();
+
+    // Reject implausible transformations.
+    if (
+      stepValues.length !== 9 ||
+      stepValues.some(v => !Number.isFinite(v)) ||
+      Math.abs(stepValues[8]) < 0.00001
+    ) {
+
+      handleTrackingLoss(gray);
+      gray.delete();
+      return;
+    }
+
+    const step = stepValues.map(v => v/stepValues[8]);
+
+    const magnitude = Math.max(
+      Math.abs(step[0]),
+      Math.abs(step[1]),
+      Math.abs(step[3]),
+      Math.abs(step[4])
+    );
+
+    if (magnitude > 3 || magnitude < 0.2) {
+
+      handleTrackingLoss(gray);
+      gray.delete();
+      return;
+    }
+
+    // Accumulate transformations from the original placement.
+    if (placed) {
+      totalH = multiplyMatrix(step,totalH);
+      updatePlacement();
+    }
+
+    trackingConfidence = Math.round(ratio*100);
+
+    lostFrames = 0;
+
+    trackingStatus.textContent =
+      placed ? "TRACKING ACTIVE" : "ENVIRONMENT MAPPED";
+
+    trackingInfo.textContent =
+      inliers + " FEATURES LOCKED · " +
+      trackingConfidence + "% CONFIDENCE";
+
+    prevGray.delete();
+    prevGray = gray.clone();
+
+    gray.delete();
+
+  } catch(error) {
+
+    console.error("Tracking error:",error);
+
+    if (gray && !gray.isDeleted) {
+      try { gray.delete(); } catch(e) {}
+    }
+
   }
 }
 
-function onMotion(event) {
-  if (event.alpha === null || event.beta === null) return;
+// =====================================================
+// TRACKING LOSS AND RECOVERY
+// =====================================================
 
-  latestMotion = {
-    alpha: event.alpha,
-    beta: event.beta,
-    gamma: event.gamma || 0
-  };
+function handleTrackingLoss(gray) {
 
-  if (baseAlpha === null) {
-    baseAlpha = latestMotion.alpha;
-    baseBeta = latestMotion.beta;
-    baseGamma = latestMotion.gamma;
+  lostFrames++;
+
+  trackingStatus.textContent = "TRACKING WEAK";
+
+  trackingInfo.textContent =
+    featureCount + " FEATURES · REACQUIRING";
+
+  if (lostFrames > 8) {
+
+    trackingStatus.textContent = "REFERENCE LOST";
+
+    instruction.textContent =
+      "Visual reference lost. Move slowly towards a textured area and reposition the Telescope.";
+
   }
 
-  if (!placed) return;
+  // Rebase after prolonged tracking loss.
+  // This preserves the last screen position but cannot
+  // reconstruct movement that occurred during the loss.
+  if (lostFrames === 3 && placed) {
 
-  const yaw = angleDifference(
-    latestMotion.alpha,
-    baseAlpha
+    const newAnchor = screenToProcessing(currentX,currentY);
+
+    anchorX = newAnchor.x;
+    anchorY = newAnchor.y;
+
+    totalH = identityMatrix();
+
+  }
+
+  if (prevGray) prevGray.delete();
+
+  prevGray = gray.clone();
+}
+
+// =====================================================
+// CHARACTER POSITION AND SCALE
+// =====================================================
+
+function updatePlacement() {
+
+  const point = transformPoint(
+    totalH,
+    anchorX,
+    anchorY
   );
 
-  const pitch = latestMotion.beta - baseBeta;
+  if (!point) return;
 
-  const scale = window.innerWidth / 90;
-
-  currentX = clamp(
-    anchorX - yaw * scale,
-    20,
-    window.innerWidth - 20
+  const screen = processingToScreen(
+    point.x,
+    point.y
   );
 
-  currentY = clamp(
-    anchorY + pitch * scale,
-    100,
-    window.innerHeight - 130
+  // Estimate local perspective scale by transforming
+  // two nearby reference points.
+  const px = transformPoint(
+    totalH,
+    anchorX+25,
+    anchorY
   );
+
+  const py = transformPoint(
+    totalH,
+    anchorX,
+    anchorY+25
+  );
+
+  if (!px || !py) return;
+
+  const sx = Math.hypot(
+    px.x-point.x,
+    px.y-point.y
+  )/25;
+
+  const sy = Math.hypot(
+    py.x-point.x,
+    py.y-point.y
+  )/25;
+
+  const estimatedScale = Math.sqrt(sx*sy);
+
+  currentScale = Math.max(
+    0.55,
+    Math.min(2.1,estimatedScale)
+  );
+
+  currentX = screen.x;
+  currentY = screen.y;
 
   updateCharacter();
 }
 
-function updateCharacter() {
-  const bob = Math.sin(Date.now() / 350) * 7;
-  const rotation = Math.sin(Date.now() / 700) * 5;
+// =====================================================
+// ANIMATION
+// =====================================================
 
-  character.style.left = currentX + "px";
-  character.style.top = (currentY + bob) + "px";
+function updateCharacter() {
+
+  const bob = Math.sin(Date.now()/350)*6;
+  const rotation = Math.sin(Date.now()/650)*4;
+
+  character.style.left = currentX+"px";
+  character.style.top = (currentY+bob)+"px";
+
+  character.style.fontSize =
+    (100*currentScale)+"px";
 
   character.style.transform =
-    `translate(-50%, -50%) rotate(${rotation}deg)`;
+    `translate(-50%,-50%) rotate(${rotation}deg)`;
 
-  shadow.style.left = currentX + "px";
-  shadow.style.top = (currentY + 52) + "px";
+  shadow.style.left = currentX+"px";
+  shadow.style.top = (currentY+48*currentScale)+"px";
+
+  shadow.style.width =
+    (85*currentScale)+"px";
 }
 
 function animate() {
-  if (placed) updateCharacter();
+
+  if (placed) {
+
+    const bob = Math.sin(Date.now()/350)*6;
+
+    character.style.top =
+      (currentY+bob)+"px";
+
+  }
+
   requestAnimationFrame(animate);
 }
 
 requestAnimationFrame(animate);
 
-document.getElementById("startButton")
-  .addEventListener("click", startCamera);
+// =====================================================
+// PLACE CHARACTER
+// =====================================================
 
-document.getElementById("scene")
-  .addEventListener("click", event => {
+stage.addEventListener("pointerdown",event => {
 
-    if (!cameraActive || event.target.closest("#hud")) return;
+  if (!cameraActive || !trackingReady) return;
 
-    anchorX = event.clientX;
-    anchorY = event.clientY;
+  if (event.target.closest("#hud")) return;
 
-    currentX = anchorX;
-    currentY = anchorY;
+  const point = screenToProcessing(
+    event.clientX,
+    event.clientY
+  );
 
-    // Recalibrate the orientation reference
-    // each time the character is placed.
-    if (latestMotion) {
-      baseAlpha = latestMotion.alpha;
-      baseBeta = latestMotion.beta;
-      baseGamma = latestMotion.gamma;
-    }
+  anchorX = point.x;
+  anchorY = point.y;
 
-    placed = true;
+  totalH = identityMatrix();
 
-    character.style.display = "block";
-    shadow.style.display = "block";
-    reticle.style.display = "block";
+  currentX = event.clientX;
+  currentY = event.clientY;
+  currentScale = 1;
 
-    reticle.style.left = anchorX + "px";
-    reticle.style.top = anchorY + "px";
+  placed = true;
+  lostFrames = 0;
 
-    setTimeout(() => {
-      reticle.style.display = "none";
-    }, 600);
+  character.style.display = "block";
+  shadow.style.display = "block";
 
-    status.textContent = "SUBJECT LOCATED";
+  reticle.style.display = "block";
+  reticle.style.left = currentX+"px";
+  reticle.style.top = currentY+"px";
 
-    instruction.textContent =
-      "Telescope deployed. Turn your phone to explore its position.";
+  setTimeout(() => {
+    reticle.style.display = "none";
+  },600);
 
-  });
+  trackingStatus.textContent = "SUBJECT DEPLOYED";
+
+  instruction.textContent =
+    "Telescope deployed. Move your phone slowly. Watch how the character responds to the movement of the scene.";
+
+});
+
+// =====================================================
+// RESET / REPOSITION
+// =====================================================
 
 document.getElementById("resetButton")
-  .addEventListener("click", () => {
+.addEventListener("click",() => {
 
-    placed = false;
-    character.style.display = "none";
-    shadow.style.display = "none";
+  placed = false;
 
-    status.textContent = "READY FOR DEPLOYMENT";
-    instruction.textContent =
-      "Tap the camera view to place the Telescope again.";
+  character.style.display = "none";
+  shadow.style.display = "none";
 
-  });
+  totalH = identityMatrix();
+
+  trackingStatus.textContent = "READY FOR DEPLOYMENT";
+
+  instruction.textContent =
+    "Tap a new position in the camera view to deploy the Telescope.";
+
+});
+
+// =====================================================
+// EVIDENCE PHOTOGRAPHY
+// =====================================================
 
 document.getElementById("photoButton")
-  .addEventListener("click", () => {
+.addEventListener("click",() => {
 
-    if (!cameraActive) {
-      alert("Activate the camera first.");
-      return;
-    }
+  if (!cameraActive) {
+    alert("Activate the field camera first.");
+    return;
+  }
 
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  const canvas = document.createElement("canvas");
 
-    const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
 
-    if (placed) {
-      const scale = canvas.width / window.innerWidth;
+  ctx.drawImage(
+    video,
+    0,0,
+    canvas.width,
+    canvas.height
+  );
 
-      const x = currentX * scale;
-      const y = currentY * scale;
+  if (placed) {
 
-      const size = 105 * scale;
+    const screenRatioX =
+      canvas.width/window.innerWidth;
 
-      ctx.font = `${size}px sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+    const screenRatioY =
+      canvas.height/window.innerHeight;
 
-      ctx.shadowColor = "#0009";
-      ctx.shadowBlur = 15;
+    const x = currentX*screenRatioX;
+    const y = currentY*screenRatioY;
 
-      ctx.fillText("🔭", x, y);
-      ctx.shadowBlur = 0;
-    }
+    const size =
+      100*currentScale*screenRatioX;
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 18px sans-serif";
-    ctx.fillText(
-      "N.O.E.L. FIELD EVIDENCE 001",
-      20,
-      canvas.height - 35
-    );
+    ctx.font = `${size}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-    const link = document.createElement("a");
-    link.download = "NOEL-Evidence-001.jpg";
-    link.href = canvas.toDataURL("image/jpeg", 0.92);
-    link.click();
+    ctx.shadowColor = "#0009";
+    ctx.shadowBlur = 18;
 
-    instruction.textContent =
-      "Evidence photograph captured successfully.";
-  });
+    ctx.fillText("🔭",x,y);
+
+    ctx.shadowBlur = 0;
+
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 18px sans-serif";
+
+  ctx.fillText(
+    "N.O.E.L. FIELD EVIDENCE 001",
+    22,
+    canvas.height-35
+  );
+
+  const link = document.createElement("a");
+
+  link.download = "NOEL-Evidence-001.jpg";
+
+  link.href = canvas.toDataURL(
+    "image/jpeg",
+    0.92
+  );
+
+  link.click();
+
+  document.getElementById("flash")
+    .classList.remove("active");
+
+  void document.getElementById("flash").offsetWidth;
+
+  document.getElementById("flash")
+    .classList.add("active");
+
+  instruction.textContent =
+    "Evidence photograph captured.";
+
+});
+
+// =====================================================
+// START
+// =====================================================
+
+document.getElementById("startButton")
+.addEventListener("click",startCamera);
 
 </script>
-
 </body>
 </html>
