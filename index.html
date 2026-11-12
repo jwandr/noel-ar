@@ -558,28 +558,55 @@ async function startCamera() {
       audio:false
     });
 
+    
     video.srcObject = stream;
     cameraActive = true;
 
-    // Dismiss the welcome panel immediately.
+    // Dismiss the welcome panel.
     welcome.classList.add("hidden");
 
     trackingStatus.textContent = "CAMERA ACTIVE";
-    
-    trackingInfo.textContent = "TEST A: WAITING FOR VIDEO";
+    trackingInfo.textContent = "WAITING FOR VIDEO FRAMES";
 
     instruction.textContent =
-      "Camera activated. Testing video playback...";
+      "Camera activated. Waiting for the video feed...";
 
-    console.log("TEST A: Before video.play()");
+    // Wait for actual video frames rather than relying
+    // solely on the play() promise.
+    await new Promise((resolve, reject) => {
 
-    await video.play();
+      const timeout = setTimeout(() => {
+        reject(new Error("Camera did not produce video frames."));
+      }, 10000);
 
-    console.log("TEST B: Video playback completed");
+      function checkVideo() {
 
-    trackingInfo.textContent = "TEST B: STARTING OPENCV";
+        if (
+          video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+          video.videoWidth > 0
+        ) {
+          clearTimeout(timeout);
+          resolve();
+          return;
+        }
+
+        requestAnimationFrame(checkVideo);
+      }
+
+      video.play().catch(error => {
+        console.warn("Video play promise:", error);
+      });
+
+      checkVideo();
+
+    });
+
+    console.log("N.O.E.L.: Video frames confirmed.");
+
+    trackingInfo.textContent = "VIDEO ONLINE · STARTING VISION";
 
     await loadComputerVision();
+
 
     console.log("TEST C: OpenCV completed");
 
