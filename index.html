@@ -1,0 +1,507 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>N.O.E.L. | Field Operations</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #080e18;
+  color: #edf4ff;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+#camera {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+#character {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 100px;
+  transform: translate(-50%, -50%);
+  display: none;
+  filter: drop-shadow(0 12px 12px #0008);
+  transform-origin: center;
+  user-select: none;
+  pointer-events: none;
+  will-change: left, top, transform;
+}
+
+#shadow {
+  position: absolute;
+  width: 85px;
+  height: 17px;
+  border-radius: 50%;
+  background: #0008;
+  filter: blur(8px);
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 18px 30px;
+  pointer-events: none;
+}
+
+header, footer, .panel {
+  pointer-events: auto;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-size: 12px;
+  letter-spacing: 3px;
+  font-weight: 800;
+}
+
+.status {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #65e4d0;
+}
+
+.panel {
+  align-self: center;
+  width: 100%;
+  max-width: 360px;
+  padding: 17px;
+  background: #081321e8;
+  border: 1px solid #34536b;
+  border-radius: 13px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+}
+
+h1 {
+  font-size: 21px;
+  margin: 7px 0;
+}
+
+p {
+  color: #b5c4d5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 13px 16px;
+  background: #5ce0c7;
+  color: #07141b;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 9px;
+  font-size: 13px;
+}
+
+button.secondary {
+  background: #24364a;
+  color: white;
+}
+
+footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+#instruction {
+  font-size: 12px;
+  background: #081321dc;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.controls button {
+  flex: 1;
+  margin: 0;
+}
+
+#cameraHint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  pointer-events: none;
+  width: 85%;
+}
+
+#reticle {
+  position: absolute;
+  width: 35px;
+  height: 35px;
+  border: 1px solid #5ce0c7;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  pointer-events: none;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+
+<body>
+
+<video id="camera" autoplay playsinline muted></video>
+
+<div id="scene">
+  <div id="shadow"></div>
+  <div id="character">🔭</div>
+  <div id="reticle"></div>
+</div>
+
+<div id="cameraHint">
+  CAMERA VIEW INITIALISING
+</div>
+
+<div id="hud">
+
+  <header>
+    <div>
+      <div class="brand">N.O.E.L.</div>
+      <div style="font-size:9px;letter-spacing:2px;color:#9aafc4">
+        FIELD OPERATIONS
+      </div>
+    </div>
+    <div class="status" id="trackingStatus">
+      SYSTEM STANDBY
+    </div>
+  </header>
+
+  <div class="panel" id="welcome">
+    <div style="font-size:30px">🔭</div>
+    <div class="status">CLASSIFIED FIELD OPERATION 001</div>
+    <h1>The Telescope</h1>
+    <p>
+      An unidentified emoji has been detected in your vicinity.
+      Activate your field camera to investigate.
+    </p>
+    <button id="startButton">ACTIVATE FIELD CAMERA</button>
+    <p style="font-size:10px">
+      Camera and motion permissions required.
+    </p>
+  </div>
+
+  <footer>
+    <div id="instruction">
+      Awaiting camera activation...
+    </div>
+
+    <div class="controls">
+      <button class="secondary" id="resetButton">RESET</button>
+      <button id="photoButton">CAPTURE EVIDENCE</button>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const video = document.getElementById("camera");
+const character = document.getElementById("character");
+const shadow = document.getElementById("shadow");
+const welcome = document.getElementById("welcome");
+const instruction = document.getElementById("instruction");
+const status = document.getElementById("trackingStatus");
+const hint = document.getElementById("cameraHint");
+const reticle = document.getElementById("reticle");
+
+let cameraActive = false;
+let placed = false;
+let motionActive = false;
+
+let anchorX = 0;
+let anchorY = 0;
+
+let baseAlpha = null;
+let baseBeta = null;
+let baseGamma = null;
+
+let currentX = 0;
+let currentY = 0;
+
+let latestMotion = null;
+
+const clamp = (value, min, max) =>
+  Math.max(min, Math.min(max, value));
+
+function angleDifference(a, b) {
+  return ((a - b + 540) % 360) - 180;
+}
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    await video.play();
+
+    cameraActive = true;
+    video.style.display = "block";
+    hint.style.display = "none";
+
+    welcome.classList.add("hidden");
+
+    status.textContent = "CAMERA ACTIVE";
+    instruction.textContent =
+      "Move your phone slowly, then tap where you want the Telescope to appear.";
+
+    await enableMotion();
+
+  } catch (error) {
+    alert(
+      "Camera access failed. Please allow camera permissions and open this page using HTTPS in Safari."
+    );
+    console.error(error);
+  }
+}
+
+async function enableMotion() {
+  try {
+    if (
+      typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function"
+    ) {
+      const permission =
+        await DeviceOrientationEvent.requestPermission();
+
+      if (permission !== "granted") {
+        throw new Error("Motion permission denied");
+      }
+    }
+
+    window.addEventListener("deviceorientation", onMotion);
+    motionActive = true;
+
+    instruction.textContent =
+      "Motion sensors ready. Tap the camera view to place your character.";
+
+  } catch (error) {
+    instruction.textContent =
+      "Camera ready. Motion tracking unavailable; the character will remain screen-positioned.";
+    status.textContent = "CAMERA ONLY";
+    console.warn(error);
+  }
+}
+
+function onMotion(event) {
+  if (event.alpha === null || event.beta === null) return;
+
+  latestMotion = {
+    alpha: event.alpha,
+    beta: event.beta,
+    gamma: event.gamma || 0
+  };
+
+  if (baseAlpha === null) {
+    baseAlpha = latestMotion.alpha;
+    baseBeta = latestMotion.beta;
+    baseGamma = latestMotion.gamma;
+  }
+
+  if (!placed) return;
+
+  const yaw = angleDifference(
+    latestMotion.alpha,
+    baseAlpha
+  );
+
+  const pitch = latestMotion.beta - baseBeta;
+
+  const scale = window.innerWidth / 90;
+
+  currentX = clamp(
+    anchorX - yaw * scale,
+    20,
+    window.innerWidth - 20
+  );
+
+  currentY = clamp(
+    anchorY + pitch * scale,
+    100,
+    window.innerHeight - 130
+  );
+
+  updateCharacter();
+}
+
+function updateCharacter() {
+  const bob = Math.sin(Date.now() / 350) * 7;
+  const rotation = Math.sin(Date.now() / 700) * 5;
+
+  character.style.left = currentX + "px";
+  character.style.top = (currentY + bob) + "px";
+
+  character.style.transform =
+    `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+  shadow.style.left = currentX + "px";
+  shadow.style.top = (currentY + 52) + "px";
+}
+
+function animate() {
+  if (placed) updateCharacter();
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+
+document.getElementById("startButton")
+  .addEventListener("click", startCamera);
+
+document.getElementById("scene")
+  .addEventListener("click", event => {
+
+    if (!cameraActive || event.target.closest("#hud")) return;
+
+    anchorX = event.clientX;
+    anchorY = event.clientY;
+
+    currentX = anchorX;
+    currentY = anchorY;
+
+    // Recalibrate the orientation reference
+    // each time the character is placed.
+    if (latestMotion) {
+      baseAlpha = latestMotion.alpha;
+      baseBeta = latestMotion.beta;
+      baseGamma = latestMotion.gamma;
+    }
+
+    placed = true;
+
+    character.style.display = "block";
+    shadow.style.display = "block";
+    reticle.style.display = "block";
+
+    reticle.style.left = anchorX + "px";
+    reticle.style.top = anchorY + "px";
+
+    setTimeout(() => {
+      reticle.style.display = "none";
+    }, 600);
+
+    status.textContent = "SUBJECT LOCATED";
+
+    instruction.textContent =
+      "Telescope deployed. Turn your phone to explore its position.";
+
+  });
+
+document.getElementById("resetButton")
+  .addEventListener("click", () => {
+
+    placed = false;
+    character.style.display = "none";
+    shadow.style.display = "none";
+
+    status.textContent = "READY FOR DEPLOYMENT";
+    instruction.textContent =
+      "Tap the camera view to place the Telescope again.";
+
+  });
+
+document.getElementById("photoButton")
+  .addEventListener("click", () => {
+
+    if (!cameraActive) {
+      alert("Activate the camera first.");
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if (placed) {
+      const scale = canvas.width / window.innerWidth;
+
+      const x = currentX * scale;
+      const y = currentY * scale;
+
+      const size = 105 * scale;
+
+      ctx.font = `${size}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.shadowColor = "#0009";
+      ctx.shadowBlur = 15;
+
+      ctx.fillText("🔭", x, y);
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillText(
+      "N.O.E.L. FIELD EVIDENCE 001",
+      20,
+      canvas.height - 35
+    );
+
+    const link = document.createElement("a");
+    link.download = "NOEL-Evidence-001.jpg";
+    link.href = canvas.toDataURL("image/jpeg", 0.92);
+    link.click();
+
+    instruction.textContent =
+      "Evidence photograph captured successfully.";
+  });
+
+</script>
+
+</body>
+</html>
