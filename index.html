@@ -562,6 +562,34 @@ async function startCamera() {
     video.srcObject = stream;
     cameraActive = true;
 
+    console.log("VIDEO DEBUG", {
+      readyState: video.readyState,
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight,
+      paused: video.paused,
+      streamActive: stream.active,
+      tracks: stream.getVideoTracks().map(track => ({
+        readyState: track.readyState,
+        enabled: track.enabled,
+        muted: track.muted
+      }))
+    });
+
+    video.onloadedmetadata = () => {
+      console.log("VIDEO METADATA LOADED", {
+        width: video.videoWidth,
+        height: video.videoHeight
+      });
+    };
+
+    video.onplaying = () => {
+      console.log("VIDEO PLAYING");
+    };
+
+    video.onerror = () => {
+      console.log("VIDEO ERROR", video.error);
+    };
+
     // Dismiss the welcome panel.
     welcome.classList.add("hidden");
 
