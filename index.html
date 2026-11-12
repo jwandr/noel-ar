@@ -454,53 +454,83 @@ function processingToScreen(x,y) {
 // =====================================================
 
 
+
 async function loadComputerVision() {
 
-  cvStatus.textContent = "Downloading computer vision system...";
+  const deadline = Date.now() + 30000;
 
-  const deadline = Date.now() + 60000;
+  trackingInfo.textContent = "DOWNLOADING OPENCV...";
+  trackingStatus.textContent = "LOADING VISION";
 
-  // Wait for the OpenCV script to create its cv object.
-  while (
-    !window.cv &&
-    !window.__opencvScriptError &&
-    Date.now() < deadline
-  ) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
+  console.log("N.O.E.L.: Waiting for OpenCV script...");
 
-  if (window.__opencvScriptError) {
-    throw new Error(window.__opencvScriptError);
+  // Step 1: Wait for the OpenCV object to appear.
+  while (!window.cv && Date.now() < deadline) {
+
+    if (window.__opencvScriptError) {
+      throw new Error(window.__opencvScriptError);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   if (!window.cv) {
     throw new Error(
-      "OpenCV script loaded but did not initialise. Check the network connection."
+      "OpenCV script did not initialise within 30 seconds. Check whether the OpenCV download is being blocked."
     );
   }
 
-  cvStatus.textContent = "Initialising computer vision runtime...";
+  console.log("N.O.E.L.: OpenCV script found.");
 
-  // Crucial: cv may itself be a Promise.
-  CV = await window.cv;
+  trackingInfo.textContent = "STARTING WASM ENGINE...";
+  cvStatus.textContent = "Starting WebAssembly engine...";
 
+  // Step 2: Wait for the actual runtime.
+  // This timeout catches a Promise that never resolves.
+  let timeoutId;
+
+  try {
+
+    CV = await Promise.race([
+
+      Promise.resolve(window.cv),
+
+      new Promise((resolve, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(
+            "OpenCV's WebAssembly engine did not finish starting within 30 seconds."
+          ));
+        }, 30000);
+      })
+
+    ]);
+
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  console.log("N.O.E.L.: OpenCV runtime returned.");
+
+  // Step 3: Verify that the runtime is usable.
   if (!CV || typeof CV.Mat !== "function") {
     throw new Error(
-      "OpenCV loaded, but its computer vision functions are unavailable."
+      "OpenCV loaded, but its Mat function is missing."
     );
   }
 
-  // Test that the runtime can actually create an image matrix.
+  trackingInfo.textContent = "TESTING VISION ENGINE...";
+
   const testMat = new CV.Mat(2, 2, CV.CV_8UC1);
   testMat.delete();
 
-  cvStatus.textContent = "COMPUTER VISION ONLINE";
   trackingInfo.textContent = "COMPUTER VISION ONLINE";
+  cvStatus.textContent = "COMPUTER VISION ONLINE";
 
-  console.log("N.O.E.L.: OpenCV successfully initialised.");
+  console.log("N.O.E.L.: Computer vision successfully tested.");
 
   return true;
 }
+
 
 
 // =====================================================
