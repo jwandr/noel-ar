@@ -565,19 +565,24 @@ async function startCamera() {
     welcome.classList.add("hidden");
 
     trackingStatus.textContent = "CAMERA ACTIVE";
-    trackingInfo.textContent = "CAMERA ONLINE · VISION LOADING";
+    
+    trackingInfo.textContent = "TEST A: WAITING FOR VIDEO";
 
     instruction.textContent =
-      "Camera activated. Preparing visual tracking...";
+      "Camera activated. Testing video playback...";
+
+    console.log("TEST A: Before video.play()");
 
     await video.play();
 
-    // Now initialise computer vision.
-    trackingInfo.textContent = "STEP 1: STARTING OPENCV";
-    console.log("Reached OpenCV initialisation");
+    console.log("TEST B: Video playback completed");
+
+    trackingInfo.textContent = "TEST B: STARTING OPENCV";
+
     await loadComputerVision();
-    trackingInfo.textContent = "STEP 2: OPENCV READY";
-    console.log("OpenCV initialisation completed");
+
+    console.log("TEST C: OpenCV completed");
+
 
     processHeight = Math.round(
       processWidth *
