@@ -23,12 +23,16 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
 }
 
 #stage {
   position: fixed;
   inset: 0;
   overflow: hidden;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 #character {
@@ -64,11 +68,28 @@ body {
   justify-content: space-between;
   padding: 25px 18px 26px;
   pointer-events: none;
+  z-index: 5;
 }
 
 header, footer, .panel {
   pointer-events: auto;
+  position: relative;
 }
+
+#hud button {
+  pointer-events: auto;
+  position: relative;
+  z-index: 6;
+}
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}x
 
 header {
   display: flex;
@@ -599,37 +620,51 @@ async function startCamera() {
     instruction.textContent =
       "Camera activated. Waiting for the video feed...";
 
-    // Wait for actual video frames rather than relying
-    // solely on the play() promise.
+    
+    // Start playback without waiting indefinitely for Safari's
+    // play() promise to resolve.
+    video.muted = true;
+    video.playsInline = true;
+
+    video.play().catch(error => {
+      console.warn("Video playback notice:", error);
+    });
+
+    // Wait for usable video data using a finite polling loop.
     await new Promise((resolve, reject) => {
 
-      const timeout = setTimeout(() => {
-        reject(new Error("Camera did not produce video frames."));
-      }, 10000);
+      let attempts = 0;
 
-      function checkVideo() {
+      const interval = setInterval(() => {
+
+        attempts++;
+
+        trackingInfo.textContent =
+          "VIDEO CHECK " + attempts + "/50";
 
         if (
-          video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
-          video.videoWidth > 0
+          video.videoWidth > 0 &&
+          video.videoHeight > 0 &&
+          video.readyState >= 2
         ) {
-          clearTimeout(timeout);
+          clearInterval(interval);
           resolve();
           return;
         }
 
-        requestAnimationFrame(checkVideo);
-      }
+        if (attempts >= 50) {
+          clearInterval(interval);
+          reject(new Error(
+            "No usable camera frames received after 10 seconds."
+          ));
+        }
 
-      video.play().catch(error => {
-        console.warn("Video play promise:", error);
-      });
-
-      checkVideo();
+      }, 200);
 
     });
 
     console.log("N.O.E.L.: Video frames confirmed.");
+
 
     trackingInfo.textContent = "VIDEO ONLINE · STARTING VISION";
 
