@@ -3,18 +3,27 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>N.O.E.L. | Field Operations AR 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>N.O.E.L. | Field Operations AR 0.3</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #080e18;
+}
 
 body {
-  margin: 0;
-  background: #080e18;
   color: #edf4ff;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #camera {
@@ -22,17 +31,22 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   object-fit: cover;
+  object-position: center center;
+  display: block;
   z-index: 0;
   pointer-events: none;
+  background: #080e18;
 }
 
 #stage {
   position: fixed;
   inset: 0;
+  z-index: 2;
   overflow: hidden;
-  z-index: 1;
   pointer-events: auto;
+  touch-action: manipulation;
 }
 
 #character {
@@ -60,41 +74,41 @@ body {
   pointer-events: none;
 }
 
+#reticle {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #5ce0c7;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  pointer-events: none;
+}
+
 #hud {
   position: fixed;
   inset: 0;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 25px 18px 26px;
+  padding:
+    max(25px, env(safe-area-inset-top))
+    18px
+    max(26px, env(safe-area-inset-bottom));
   pointer-events: none;
-  z-index: 5;
 }
 
 header, footer, .panel {
-  pointer-events: auto;
   position: relative;
-}
-
-#hud button {
   pointer-events: auto;
-  position: relative;
-  z-index: 6;
 }
-
-#flash {
-  position: fixed;
-  inset: 0;
-  background: white;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 10;
-}x
 
 header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .brand {
@@ -115,6 +129,18 @@ header {
   letter-spacing: 1px;
   color: #65e4d0;
   text-align: right;
+}
+
+#trackingInfo {
+  display: inline-block;
+  background: #081321e8;
+  padding: 8px 11px;
+  border-radius: 7px;
+  font-size: 10px;
+  color: #b5c4d5;
+  margin-top: 8px;
+  text-align: right;
+  max-width: 190px;
 }
 
 .panel {
@@ -151,6 +177,8 @@ button {
   width: 100%;
   margin-top: 8px;
   font-size: 12px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button.secondary {
@@ -160,6 +188,12 @@ button.secondary {
 
 button:disabled {
   opacity: .45;
+}
+
+#hud button {
+  position: relative;
+  z-index: 21;
+  pointer-events: auto;
 }
 
 footer {
@@ -187,36 +221,21 @@ footer {
   margin: 0;
 }
 
-#trackingInfo {
-  display: inline-block;
-  background: #081321e8;
-  padding: 8px 11px;
-  border-radius: 7px;
+#cvStatus {
+  color: #8da5bb;
   font-size: 10px;
-  color: #b5c4d5;
   margin-top: 8px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
-
-#reticle {
-  position: absolute;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #5ce0c7;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  display: none;
-  pointer-events: none;
-}
-
-.hidden { display: none !important; }
 
 #flash {
   position: fixed;
   inset: 0;
+  z-index: 30;
   background: white;
   opacity: 0;
   pointer-events: none;
-  z-index: 10;
 }
 
 #flash.active {
@@ -228,10 +247,8 @@ footer {
   100% { opacity: 0; }
 }
 
-#cvStatus {
-  color: #8da5bb;
-  font-size: 10px;
-  margin-top: 8px;
+.hidden {
+  display: none !important;
 }
 
 </style>
@@ -239,7 +256,12 @@ footer {
 
 <body>
 
-<video id="camera" autoplay playsinline muted></video>
+<video
+  id="camera"
+  autoplay
+  playsinline
+  muted
+></video>
 
 <div id="stage">
   <div id="shadow"></div>
@@ -278,10 +300,12 @@ footer {
 
     <button id="startButton">ACTIVATE FIELD CAMERA</button>
 
-    <div id="cvStatus">Loading computer vision system...</div>
+    <div id="cvStatus">
+      Camera and visual tracking permissions required.
+    </div>
 
     <p style="font-size:10px">
-      Camera and visual tracking permissions required.
+      Best results in a well-lit environment with visible detail.
     </p>
 
   </div>
@@ -301,27 +325,12 @@ footer {
 
 </div>
 
-
-<!-- OpenCV.js computer vision library -->
-<script>
-window.__opencvScriptLoaded = false;
-window.__opencvScriptError = null;
-</script>
-
-<script
-  async
-  src="https://docs.opencv.org/4.13.0/opencv.js"
-  onload="window.__opencvScriptLoaded = true;"
-  onerror="window.__opencvScriptError = 'OpenCV script could not download.';">
-</script>
-
-
 <script>
 
 // =====================================================
 // N.O.E.L. FIELD OPERATIONS
-// VERSION 0.2
-// VISUAL FEATURE TRACKING
+// VERSION 0.3
+// CAMERA-FIRST INITIALISATION
 // =====================================================
 
 const video = document.getElementById("camera");
@@ -335,10 +344,17 @@ const trackingInfo = document.getElementById("trackingInfo");
 const cvStatus = document.getElementById("cvStatus");
 const reticle = document.getElementById("reticle");
 
+const startButton = document.getElementById("startButton");
+const resetButton = document.getElementById("resetButton");
+const photoButton = document.getElementById("photoButton");
+const flash = document.getElementById("flash");
+
 let CV = null;
 let cameraActive = false;
-let placed = false;
 let trackingReady = false;
+let placed = false;
+
+let cameraStream = null;
 
 let prevGray = null;
 let totalH = null;
@@ -355,16 +371,16 @@ let lostFrames = 0;
 let featureCount = 0;
 let trackingConfidence = 0;
 
-let processingCanvas = document.createElement("canvas");
-let processingContext = processingCanvas.getContext("2d", {
+let trackingFrameRequested = false;
+
+const processingCanvas = document.createElement("canvas");
+const processingContext = processingCanvas.getContext("2d", {
   willReadFrequently: true
 });
 
-let processWidth = 360;
+const processWidth = 360;
 let processHeight = 270;
 
-let lastProcessedWidth = 0;
-let lastProcessedHeight = 0;
 
 // =====================================================
 // MATRIX UTILITIES
@@ -372,19 +388,20 @@ let lastProcessedHeight = 0;
 
 function identityMatrix() {
   return [
-    1,0,0,
-    0,1,0,
-    0,0,1
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1
   ];
 }
 
 function multiplyMatrix(a, b) {
+
   const result = new Array(9).fill(0);
 
   for (let r = 0; r < 3; r++) {
     for (let c = 0; c < 3; c++) {
       for (let k = 0; k < 3; k++) {
-        result[r*3+c] += a[r*3+k] * b[k*3+c];
+        result[r * 3 + c] += a[r * 3 + k] * b[k * 3 + c];
       }
     }
   }
@@ -395,25 +412,27 @@ function multiplyMatrix(a, b) {
 }
 
 function transformPoint(matrix, x, y) {
+
   const denominator =
-    matrix[6]*x + matrix[7]*y + matrix[8];
+    matrix[6] * x + matrix[7] * y + matrix[8];
 
   if (Math.abs(denominator) < 0.00001) return null;
 
   const tx =
-    (matrix[0]*x + matrix[1]*y + matrix[2]) /
+    (matrix[0] * x + matrix[1] * y + matrix[2]) /
     denominator;
 
   const ty =
-    (matrix[3]*x + matrix[4]*y + matrix[5]) /
+    (matrix[3] * x + matrix[4] * y + matrix[5]) /
     denominator;
 
   if (!Number.isFinite(tx) || !Number.isFinite(ty)) {
     return null;
   }
 
-  return {x:tx, y:ty};
+  return { x: tx, y: ty };
 }
+
 
 // =====================================================
 // CAMERA COORDINATE CONVERSION
@@ -424,16 +443,21 @@ function getCameraMapping() {
   const vw = video.videoWidth;
   const vh = video.videoHeight;
 
+  if (!vw || !vh) return null;
+
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+
   const scale = Math.max(
-    window.innerWidth / vw,
-    window.innerHeight / vh
+    screenWidth / vw,
+    screenHeight / vh
   );
 
   const renderedWidth = vw * scale;
   const renderedHeight = vh * scale;
 
-  const offsetX = (window.innerWidth-renderedWidth)/2;
-  const offsetY = (window.innerHeight-renderedHeight)/2;
+  const offsetX = (screenWidth - renderedWidth) / 2;
+  const offsetY = (screenHeight - renderedHeight) / 2;
 
   return {
     scale,
@@ -444,70 +468,261 @@ function getCameraMapping() {
   };
 }
 
-function screenToProcessing(x,y) {
+function screenToProcessing(x, y) {
 
   const map = getCameraMapping();
 
-  const videoX = (x-map.offsetX)/map.scale;
-  const videoY = (y-map.offsetY)/map.scale;
+  if (!map) return { x: processWidth / 2, y: processHeight / 2 };
+
+  const videoX = (x - map.offsetX) / map.scale;
+  const videoY = (y - map.offsetY) / map.scale;
 
   return {
-    x: videoX/video.videoWidth*processWidth,
-    y: videoY/video.videoHeight*processHeight
+    x: videoX / map.vw * processWidth,
+    y: videoY / map.vh * processHeight
   };
 }
 
-function processingToScreen(x,y) {
+function processingToScreen(x, y) {
 
   const map = getCameraMapping();
 
-  const videoX = x/processWidth*video.videoWidth;
-  const videoY = y/processHeight*video.videoHeight;
+  if (!map) return { x: currentX, y: currentY };
+
+  const videoX = x / processWidth * map.vw;
+  const videoY = y / processHeight * map.vh;
 
   return {
-    x: videoX*map.scale+map.offsetX,
-    y: videoY*map.scale+map.offsetY
+    x: videoX * map.scale + map.offsetX,
+    y: videoY * map.scale + map.offsetY
   };
 }
 
+
 // =====================================================
-// LOAD OPENCV
+// CAMERA STARTUP
 // =====================================================
 
+async function waitForVideoDimensions(timeoutMs = 12000) {
 
+  return new Promise((resolve, reject) => {
+
+    let finished = false;
+
+    const checkInterval = setInterval(() => {
+
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        finish();
+      }
+
+    }, 150);
+
+    const failureTimeout = setTimeout(() => {
+      finish(new Error(
+        "The camera opened, but Safari did not provide usable video dimensions."
+      ));
+    }, timeoutMs);
+
+    function finish(error) {
+
+      if (finished) return;
+
+      finished = true;
+
+      clearInterval(checkInterval);
+      clearTimeout(failureTimeout);
+
+      if (error) reject(error);
+      else resolve();
+    }
+
+    if (video.videoWidth > 0 && video.videoHeight > 0) {
+      finish();
+    }
+
+  });
+}
+
+async function startCamera() {
+
+  startButton.disabled = true;
+
+  try {
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error(
+        "Camera access is unavailable. Please open this page using HTTPS in Safari."
+      );
+    }
+
+    trackingStatus.textContent = "ACTIVATING";
+    trackingInfo.textContent = "REQUESTING CAMERA...";
+    cvStatus.textContent = "Requesting camera permission...";
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 960 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 24, max: 30 }
+      },
+
+      audio: false
+
+    });
+
+    video.muted = true;
+    video.playsInline = true;
+
+    video.setAttribute("playsinline", "");
+    video.setAttribute("autoplay", "");
+
+    video.srcObject = cameraStream;
+
+    cameraActive = true;
+
+    // Reveal the camera interface immediately.
+    welcome.classList.add("hidden");
+
+    trackingStatus.textContent = "CAMERA ACTIVE";
+    trackingInfo.textContent = "CONNECTING VIDEO...";
+
+    instruction.textContent =
+      "Camera activated. Establishing the video feed...";
+
+    // Start playback. Do not let the play promise hold up
+    // the rest of the interface indefinitely.
+    video.play().catch(error => {
+      console.warn("Video playback notice:", error);
+    });
+
+    // Wait for actual video dimensions, not a strict readyState.
+    await waitForVideoDimensions();
+
+    console.log("N.O.E.L. camera online:", {
+      width: video.videoWidth,
+      height: video.videoHeight,
+      readyState: video.readyState
+    });
+
+    processHeight = Math.round(
+      processWidth * video.videoHeight / video.videoWidth
+    );
+
+    processingCanvas.width = processWidth;
+    processingCanvas.height = processHeight;
+
+    trackingInfo.textContent = "CAMERA ONLINE";
+    cvStatus.textContent = "Camera ready. Loading visual tracking...";
+
+    instruction.textContent =
+      "Camera is online. Preparing the visual tracking system...";
+
+    // The camera and interface are now usable.
+    // OpenCV is loaded separately so a failure here does not
+    // disable the camera controls.
+    try {
+
+      await loadComputerVision();
+
+      trackingReady = true;
+
+      trackingStatus.textContent = "SCANNING ENVIRONMENT";
+      trackingInfo.textContent = "SEARCHING FOR VISUAL FEATURES";
+
+      cvStatus.textContent = "Visual tracking online.";
+
+      instruction.textContent =
+        "Move your phone slowly across the surroundings. Tap a suitable textured area to deploy the Telescope.";
+
+      requestTrackingLoop();
+
+    } catch (visionError) {
+
+      console.error("OpenCV initialisation failed:", visionError);
+
+      trackingReady = false;
+
+      trackingStatus.textContent = "CAMERA ONLINE";
+      trackingInfo.textContent = "VISUAL TRACKING UNAVAILABLE";
+
+      cvStatus.textContent =
+        "Camera works, but visual tracking could not start: " +
+        visionError.message;
+
+      instruction.textContent =
+        "Camera is ready. Tap anywhere to place the Telescope. It will remain screen-anchored until visual tracking is available.";
+
+    }
+
+  } catch (error) {
+
+    console.error("N.O.E.L. camera startup error:", error);
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+
+    video.srcObject = null;
+
+    cameraActive = false;
+    trackingReady = false;
+
+    trackingStatus.textContent = "SYSTEM ERROR";
+    trackingInfo.textContent = "CAMERA STARTUP FAILED";
+
+    cvStatus.textContent = error.message;
+
+    instruction.textContent =
+      "Camera initialisation failed. Please try again.";
+
+    welcome.classList.remove("hidden");
+
+    startButton.disabled = false;
+
+    alert("N.O.E.L. could not start:\n\n" + error.message);
+
+  }
+
+}
+
+
+// =====================================================
+// LOAD OPENCV ON DEMAND
+// =====================================================
 
 async function loadComputerVision() {
 
-  const deadline = Date.now() + 30000;
-
-  trackingInfo.textContent = "DOWNLOADING OPENCV...";
   trackingStatus.textContent = "LOADING VISION";
+  trackingInfo.textContent = "DOWNLOADING OPENCV...";
 
-  console.log("N.O.E.L.: Waiting for OpenCV script...");
-
-  // Step 1: Wait for the OpenCV object to appear.
-  while (!window.cv && Date.now() < deadline) {
-
-    if (window.__opencvScriptError) {
-      throw new Error(window.__opencvScriptError);
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 150));
-  }
+  cvStatus.textContent = "Downloading computer vision system...";
 
   if (!window.cv) {
-    throw new Error(
-      "OpenCV script did not initialise within 30 seconds. Check whether the OpenCV download is being blocked."
-    );
+
+    await new Promise((resolve, reject) => {
+
+      const script = document.createElement("script");
+
+      script.src = "https://docs.opencv.org/4.13.0/opencv.js";
+      script.async = true;
+
+      script.onload = resolve;
+
+      script.onerror = () => {
+        reject(new Error("Could not download the OpenCV library."));
+      };
+
+      document.head.appendChild(script);
+
+    });
+
   }
 
-  console.log("N.O.E.L.: OpenCV script found.");
+  trackingInfo.textContent = "STARTING VISION ENGINE...";
 
-  trackingInfo.textContent = "STARTING WASM ENGINE...";
-  cvStatus.textContent = "Starting WebAssembly engine...";
-
-  // Step 2: Wait for the actual runtime.
-  // This timeout catches a Promise that never resolves.
   let timeoutId;
 
   try {
@@ -517,26 +732,25 @@ async function loadComputerVision() {
       Promise.resolve(window.cv),
 
       new Promise((resolve, reject) => {
+
         timeoutId = setTimeout(() => {
           reject(new Error(
-            "OpenCV's WebAssembly engine did not finish starting within 30 seconds."
+            "OpenCV's WebAssembly engine did not finish starting within 45 seconds."
           ));
-        }, 30000);
+        }, 45000);
+
       })
 
     ]);
 
   } finally {
+
     clearTimeout(timeoutId);
+
   }
 
-  console.log("N.O.E.L.: OpenCV runtime returned.");
-
-  // Step 3: Verify that the runtime is usable.
   if (!CV || typeof CV.Mat !== "function") {
-    throw new Error(
-      "OpenCV loaded, but its Mat function is missing."
-    );
+    throw new Error("OpenCV loaded, but its Mat function is unavailable.");
   }
 
   trackingInfo.textContent = "TESTING VISION ENGINE...";
@@ -545,221 +759,76 @@ async function loadComputerVision() {
   testMat.delete();
 
   trackingInfo.textContent = "COMPUTER VISION ONLINE";
-  cvStatus.textContent = "COMPUTER VISION ONLINE";
-
-  console.log("N.O.E.L.: Computer vision successfully tested.");
 
   return true;
 }
 
 
-
 // =====================================================
-// CAMERA STARTUP
-// =====================================================
-
-
-async function startCamera() {
-
-  const startButton = document.getElementById("startButton");
-
-  try {
-
-    startButton.disabled = true;
-
-    trackingStatus.textContent = "ACTIVATING";
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: {ideal:"environment"},
-        width: {ideal:960},
-        height: {ideal:720},
-        frameRate: {ideal:24,max:30}
-      },
-      audio:false
-    });
-
-    
-    video.srcObject = stream;
-    cameraActive = true;
-
-    console.log("VIDEO DEBUG", {
-      readyState: video.readyState,
-      videoWidth: video.videoWidth,
-      videoHeight: video.videoHeight,
-      paused: video.paused,
-      streamActive: stream.active,
-      tracks: stream.getVideoTracks().map(track => ({
-        readyState: track.readyState,
-        enabled: track.enabled,
-        muted: track.muted
-      }))
-    });
-
-    video.onloadedmetadata = () => {
-      console.log("VIDEO METADATA LOADED", {
-        width: video.videoWidth,
-        height: video.videoHeight
-      });
-    };
-
-    video.onplaying = () => {
-      console.log("VIDEO PLAYING");
-    };
-
-    video.onerror = () => {
-      console.log("VIDEO ERROR", video.error);
-    };
-
-    // Dismiss the welcome panel.
-    welcome.classList.add("hidden");
-
-    trackingStatus.textContent = "CAMERA ACTIVE";
-    trackingInfo.textContent = "WAITING FOR VIDEO FRAMES";
-
-    instruction.textContent =
-      "Camera activated. Waiting for the video feed...";
-
-    
-    // Start playback without waiting indefinitely for Safari's
-    // play() promise to resolve.
-    video.muted = true;
-    video.playsInline = true;
-
-    video.play().catch(error => {
-      console.warn("Video playback notice:", error);
-    });
-
-    // Wait for usable video data using a finite polling loop.
-    await new Promise((resolve, reject) => {
-
-      let attempts = 0;
-
-      const interval = setInterval(() => {
-
-        attempts++;
-
-        trackingInfo.textContent =
-          "VIDEO CHECK " + attempts + "/50";
-
-        if (
-          video.videoWidth > 0 &&
-          video.videoHeight > 0 &&
-          video.readyState >= 2
-        ) {
-          clearInterval(interval);
-          resolve();
-          return;
-        }
-
-        if (attempts >= 50) {
-          clearInterval(interval);
-          reject(new Error(
-            "No usable camera frames received after 10 seconds."
-          ));
-        }
-
-      }, 200);
-
-    });
-
-    console.log("N.O.E.L.: Video frames confirmed.");
-
-
-    trackingInfo.textContent = "VIDEO ONLINE · STARTING VISION";
-
-    await loadComputerVision();
-
-
-    console.log("TEST C: OpenCV completed");
-
-
-    processHeight = Math.round(
-      processWidth *
-      video.videoHeight / video.videoWidth
-    );
-
-    processingCanvas.width = processWidth;
-    processingCanvas.height = processHeight;
-
-    trackingReady = true;
-
-    trackingStatus.textContent = "SCANNING ENVIRONMENT";
-    trackingInfo.textContent = "SEARCHING FOR VISUAL FEATURES";
-
-    instruction.textContent =
-      "Move your phone slowly across the surroundings. Tap a suitable textured area to deploy the Telescope.";
-
-    requestAnimationFrame(trackFrame);
-
-  } catch(error) {
-
-    console.error("N.O.E.L. startup error:", error);
-
-    cvStatus.textContent = "ERROR: " + error.message;
-    trackingStatus.textContent = "SYSTEM ERROR";
-    trackingInfo.textContent = "VISUAL TRACKING OFFLINE";
-
-    instruction.textContent =
-      "Initialisation failed. See the error message on the welcome panel.";
-
-    welcome.classList.remove("hidden");
-    startButton.disabled = false;
-
-    alert(
-      "N.O.E.L. could not initialise:\n\n" + error.message
-    );
-
-  }
-}
-
-
-// =====================================================
-// IMAGE PROCESSING
+// CAPTURE GREYSCALE FRAME
 // =====================================================
 
 function captureGrayFrame() {
 
   processingContext.drawImage(
     video,
-    0,0,
+    0, 0,
     processWidth,
     processHeight
   );
 
   const imageData = processingContext.getImageData(
-    0,0,
+    0, 0,
     processWidth,
     processHeight
   );
 
   const source = CV.matFromImageData(imageData);
-
   const gray = new CV.Mat();
 
-  CV.cvtColor(source,gray,CV.COLOR_RGBA2GRAY);
+  CV.cvtColor(source, gray, CV.COLOR_RGBA2GRAY);
 
   source.delete();
 
   return gray;
 }
 
+
 // =====================================================
 // VISUAL FEATURE TRACKING
 // =====================================================
 
+function requestTrackingLoop() {
+
+  if (trackingFrameRequested) return;
+
+  trackingFrameRequested = true;
+
+  requestAnimationFrame(trackFrame);
+}
+
 function trackFrame(timestamp) {
+
+  if (!cameraActive || !trackingReady) {
+    trackingFrameRequested = false;
+    return;
+  }
 
   requestAnimationFrame(trackFrame);
 
-  if (!cameraActive || !trackingReady) return;
-
-  // Process approximately 10 frames per second.
-  if (timestamp-lastFrameTime < 100) return;
+  if (timestamp - lastFrameTime < 100) return;
 
   lastFrameTime = timestamp;
 
   let gray = null;
+  let prevPoints = null;
+  let nextPoints = null;
+  let status = null;
+  let errors = null;
+  let src = null;
+  let dst = null;
+  let inlierMask = null;
+  let stepH = null;
 
   try {
 
@@ -771,8 +840,9 @@ function trackFrame(timestamp) {
       return;
     }
 
-    // Detect visual features in the previous frame.
-    const prevPoints = new CV.Mat();
+    prevPoints = new CV.Mat();
+
+    const mask = new CV.Mat();
 
     CV.goodFeaturesToTrack(
       prevGray,
@@ -780,29 +850,26 @@ function trackFrame(timestamp) {
       120,
       0.01,
       8,
-      new CV.Mat(),
+      mask,
       3,
       false,
       0.04
     );
 
+    mask.delete();
+
     const count = prevPoints.rows;
 
     if (count < 8) {
 
-      prevPoints.delete();
-
       handleTrackingLoss(gray);
-
-      gray.delete();
-
       return;
+
     }
 
-    // Track features into the current frame.
-    const nextPoints = new CV.Mat();
-    const status = new CV.Mat();
-    const errors = new CV.Mat();
+    nextPoints = new CV.Mat();
+    status = new CV.Mat();
+    errors = new CV.Mat();
 
     CV.calcOpticalFlowPyrLK(
       prevGray,
@@ -811,7 +878,7 @@ function trackFrame(timestamp) {
       nextPoints,
       status,
       errors,
-      new CV.Size(21,21),
+      new CV.Size(21, 21),
       3,
       new CV.TermCriteria(
         CV.TERM_CRITERIA_EPS | CV.TERM_CRITERIA_COUNT,
@@ -823,71 +890,59 @@ function trackFrame(timestamp) {
     const validOld = [];
     const validNew = [];
 
-    for (let i=0;i<count;i++) {
+    for (let i = 0; i < count; i++) {
 
       if (status.data[i] !== 1) continue;
 
       if (errors.data32F[i] > 35) continue;
 
-      const ox = prevPoints.data32F[i*2];
-      const oy = prevPoints.data32F[i*2+1];
+      const ox = prevPoints.data32F[i * 2];
+      const oy = prevPoints.data32F[i * 2 + 1];
 
-      const nx = nextPoints.data32F[i*2];
-      const ny = nextPoints.data32F[i*2+1];
+      const nx = nextPoints.data32F[i * 2];
+      const ny = nextPoints.data32F[i * 2 + 1];
 
-      if (
-        !Number.isFinite(nx) ||
-        !Number.isFinite(ny)
-      ) continue;
+      if (!Number.isFinite(nx) || !Number.isFinite(ny)) continue;
 
-      validOld.push({x:ox,y:oy});
-      validNew.push({x:nx,y:ny});
+      validOld.push({ x: ox, y: oy });
+      validNew.push({ x: nx, y: ny });
 
     }
-
-    prevPoints.delete();
-    nextPoints.delete();
-    status.delete();
-    errors.delete();
 
     featureCount = validOld.length;
 
-    // Not enough features to calculate a stable transform.
     if (validOld.length < 8) {
 
       handleTrackingLoss(gray);
-
-      gray.delete();
-
       return;
+
     }
 
-    const src = new CV.Mat(
+    src = new CV.Mat(
       validOld.length,
       1,
       CV.CV_32FC2
     );
 
-    const dst = new CV.Mat(
+    dst = new CV.Mat(
       validNew.length,
       1,
       CV.CV_32FC2
     );
 
-    for (let i=0;i<validOld.length;i++) {
+    for (let i = 0; i < validOld.length; i++) {
 
-      src.data32F[i*2] = validOld[i].x;
-      src.data32F[i*2+1] = validOld[i].y;
+      src.data32F[i * 2] = validOld[i].x;
+      src.data32F[i * 2 + 1] = validOld[i].y;
 
-      dst.data32F[i*2] = validNew[i].x;
-      dst.data32F[i*2+1] = validNew[i].y;
+      dst.data32F[i * 2] = validNew[i].x;
+      dst.data32F[i * 2 + 1] = validNew[i].y;
 
     }
 
-    const inlierMask = new CV.Mat();
+    inlierMask = new CV.Mat();
 
-    // Estimate camera-induced scene movement.
-    const stepH = CV.findHomography(
+    stepH = CV.findHomography(
       src,
       dst,
       CV.RANSAC,
@@ -897,15 +952,11 @@ function trackFrame(timestamp) {
 
     let inliers = 0;
 
-    for (let i=0;i<inlierMask.rows*inlierMask.cols;i++) {
+    for (let i = 0; i < inlierMask.rows * inlierMask.cols; i++) {
       if (inlierMask.data[i]) inliers++;
     }
 
-    const ratio = inliers/validOld.length;
-
-    src.delete();
-    dst.delete();
-    inlierMask.delete();
+    const ratio = inliers / validOld.length;
 
     if (
       stepH.empty() ||
@@ -913,23 +964,15 @@ function trackFrame(timestamp) {
       ratio < 0.30
     ) {
 
-      if (!stepH.empty()) stepH.delete();
-
       handleTrackingLoss(gray);
-
-      gray.delete();
-
       return;
+
     }
 
-    // Convert OpenCV matrix to ordinary JavaScript values.
     const stepValues = stepH.data64F
       ? Array.from(stepH.data64F)
       : Array.from(stepH.data32F);
 
-    stepH.delete();
-
-    // Reject implausible transformations.
     if (
       stepValues.length !== 9 ||
       stepValues.some(v => !Number.isFinite(v)) ||
@@ -937,11 +980,11 @@ function trackFrame(timestamp) {
     ) {
 
       handleTrackingLoss(gray);
-      gray.delete();
       return;
+
     }
 
-    const step = stepValues.map(v => v/stepValues[8]);
+    const step = stepValues.map(v => v / stepValues[8]);
 
     const magnitude = Math.max(
       Math.abs(step[0]),
@@ -953,18 +996,18 @@ function trackFrame(timestamp) {
     if (magnitude > 3 || magnitude < 0.2) {
 
       handleTrackingLoss(gray);
-      gray.delete();
       return;
+
     }
 
-    // Accumulate transformations from the original placement.
     if (placed) {
-      totalH = multiplyMatrix(step,totalH);
+
+      totalH = multiplyMatrix(step, totalH);
       updatePlacement();
+
     }
 
-    trackingConfidence = Math.round(ratio*100);
-
+    trackingConfidence = Math.round(ratio * 100);
     lostFrames = 0;
 
     trackingStatus.textContent =
@@ -974,21 +1017,39 @@ function trackFrame(timestamp) {
       inliers + " FEATURES LOCKED · " +
       trackingConfidence + "% CONFIDENCE";
 
-    prevGray.delete();
+    if (prevGray) prevGray.delete();
+
     prevGray = gray.clone();
 
-    gray.delete();
+  } catch (error) {
 
-  } catch(error) {
+    console.error("Tracking error:", error);
 
-    console.error("Tracking error:",error);
+    trackingInfo.textContent = "TRACKING RECOVERING";
 
-    if (gray && !gray.isDeleted) {
-      try { gray.delete(); } catch(e) {}
+    if (gray) {
+      handleTrackingLoss(gray);
+    }
+
+  } finally {
+
+    if (prevPoints) prevPoints.delete();
+    if (nextPoints) nextPoints.delete();
+    if (status) status.delete();
+    if (errors) errors.delete();
+    if (src) src.delete();
+    if (dst) dst.delete();
+    if (inlierMask) inlierMask.delete();
+    if (stepH) stepH.delete();
+
+    if (gray) {
+      try { gray.delete(); } catch (e) {}
     }
 
   }
+
 }
+
 
 // =====================================================
 // TRACKING LOSS AND RECOVERY
@@ -1012,12 +1073,9 @@ function handleTrackingLoss(gray) {
 
   }
 
-  // Rebase after prolonged tracking loss.
-  // This preserves the last screen position but cannot
-  // reconstruct movement that occurred during the loss.
   if (lostFrames === 3 && placed) {
 
-    const newAnchor = screenToProcessing(currentX,currentY);
+    const newAnchor = screenToProcessing(currentX, currentY);
 
     anchorX = newAnchor.x;
     anchorY = newAnchor.y;
@@ -1026,10 +1084,14 @@ function handleTrackingLoss(gray) {
 
   }
 
-  if (prevGray) prevGray.delete();
+  if (prevGray) {
+    prevGray.delete();
+  }
 
   prevGray = gray.clone();
+
 }
+
 
 // =====================================================
 // CHARACTER POSITION AND SCALE
@@ -1050,96 +1112,98 @@ function updatePlacement() {
     point.y
   );
 
-  // Estimate local perspective scale by transforming
-  // two nearby reference points.
   const px = transformPoint(
     totalH,
-    anchorX+25,
+    anchorX + 25,
     anchorY
   );
 
   const py = transformPoint(
     totalH,
     anchorX,
-    anchorY+25
+    anchorY + 25
   );
 
   if (!px || !py) return;
 
   const sx = Math.hypot(
-    px.x-point.x,
-    px.y-point.y
-  )/25;
+    px.x - point.x,
+    px.y - point.y
+  ) / 25;
 
   const sy = Math.hypot(
-    py.x-point.x,
-    py.y-point.y
-  )/25;
+    py.x - point.x,
+    py.y - point.y
+  ) / 25;
 
-  const estimatedScale = Math.sqrt(sx*sy);
+  const estimatedScale = Math.sqrt(sx * sy);
 
   currentScale = Math.max(
     0.55,
-    Math.min(2.1,estimatedScale)
+    Math.min(2.1, estimatedScale)
   );
 
   currentX = screen.x;
   currentY = screen.y;
 
   updateCharacter();
+
 }
 
+
 // =====================================================
-// ANIMATION
+// CHARACTER ANIMATION
 // =====================================================
 
 function updateCharacter() {
 
-  const bob = Math.sin(Date.now()/350)*6;
-  const rotation = Math.sin(Date.now()/650)*4;
+  const bob = Math.sin(Date.now() / 350) * 6;
+  const rotation = Math.sin(Date.now() / 650) * 4;
 
-  character.style.left = currentX+"px";
-  character.style.top = (currentY+bob)+"px";
+  character.style.left = currentX + "px";
+  character.style.top = (currentY + bob) + "px";
 
   character.style.fontSize =
-    (100*currentScale)+"px";
+    (100 * currentScale) + "px";
 
   character.style.transform =
     `translate(-50%,-50%) rotate(${rotation}deg)`;
 
-  shadow.style.left = currentX+"px";
-  shadow.style.top = (currentY+48*currentScale)+"px";
+  shadow.style.left = currentX + "px";
+  shadow.style.top = (currentY + 48 * currentScale) + "px";
 
   shadow.style.width =
-    (85*currentScale)+"px";
+    (85 * currentScale) + "px";
+
 }
 
 function animate() {
 
   if (placed) {
 
-    const bob = Math.sin(Date.now()/350)*6;
+    const bob = Math.sin(Date.now() / 350) * 6;
 
     character.style.top =
-      (currentY+bob)+"px";
+      (currentY + bob) + "px";
 
   }
 
   requestAnimationFrame(animate);
+
 }
 
 requestAnimationFrame(animate);
+
 
 // =====================================================
 // PLACE CHARACTER
 // =====================================================
 
-stage.addEventListener("pointerdown",event => {
+stage.addEventListener("pointerdown", event => {
 
-  if (!cameraActive || !trackingReady) return;
+  if (!cameraActive) return;
 
-  if (event.target.closest("#hud")) return;
-
+  // Only allow placement on the camera area.
   const point = screenToProcessing(
     event.clientX,
     event.clientY
@@ -1161,134 +1225,182 @@ stage.addEventListener("pointerdown",event => {
   shadow.style.display = "block";
 
   reticle.style.display = "block";
-  reticle.style.left = currentX+"px";
-  reticle.style.top = currentY+"px";
+  reticle.style.left = currentX + "px";
+  reticle.style.top = currentY + "px";
 
   setTimeout(() => {
     reticle.style.display = "none";
-  },600);
+  }, 600);
 
-  trackingStatus.textContent = "SUBJECT DEPLOYED";
+  trackingStatus.textContent =
+    trackingReady ? "SUBJECT DEPLOYED" : "SUBJECT PLACED";
 
-  instruction.textContent =
-    "Telescope deployed. Move your phone slowly. Watch how the character responds to the movement of the scene.";
+  instruction.textContent = trackingReady
+    ? "Telescope deployed. Move your phone slowly and watch how the character responds to the movement of the scene."
+    : "Telescope placed. Camera mode is active, but visual tracking is unavailable, so the character is screen-anchored.";
 
 });
 
+
 // =====================================================
-// RESET / REPOSITION
+// RESET
 // =====================================================
 
-document.getElementById("resetButton")
-.addEventListener("click",() => {
+resetButton.addEventListener("click", () => {
 
   placed = false;
 
   character.style.display = "none";
   shadow.style.display = "none";
+  reticle.style.display = "none";
 
   totalH = identityMatrix();
 
-  trackingStatus.textContent = "READY FOR DEPLOYMENT";
+  trackingStatus.textContent =
+    trackingReady ? "READY FOR DEPLOYMENT" : "CAMERA ONLINE";
 
   instruction.textContent =
     "Tap a new position in the camera view to deploy the Telescope.";
 
 });
 
+
 // =====================================================
 // EVIDENCE PHOTOGRAPHY
 // =====================================================
 
-document.getElementById("photoButton")
-.addEventListener("click",() => {
+photoButton.addEventListener("click", () => {
 
-  if (!cameraActive) {
+  if (!cameraActive || !video.videoWidth) {
+
     alert("Activate the field camera first.");
+
     return;
-  }
-
-  const canvas = document.createElement("canvas");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  const ctx = canvas.getContext("2d");
-
-  ctx.drawImage(
-    video,
-    0,0,
-    canvas.width,
-    canvas.height
-  );
-
-  if (placed) {
-
-    const screenRatioX =
-      canvas.width/window.innerWidth;
-
-    const screenRatioY =
-      canvas.height/window.innerHeight;
-
-    const x = currentX*screenRatioX;
-    const y = currentY*screenRatioY;
-
-    const size =
-      100*currentScale*screenRatioX;
-
-    ctx.font = `${size}px sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.shadowColor = "#0009";
-    ctx.shadowBlur = 18;
-
-    ctx.fillText("🔭",x,y);
-
-    ctx.shadowBlur = 0;
 
   }
 
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 18px sans-serif";
+  try {
 
-  ctx.fillText(
-    "N.O.E.L. FIELD EVIDENCE 001",
-    22,
-    canvas.height-35
-  );
+    const canvas = document.createElement("canvas");
 
-  const link = document.createElement("a");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  link.download = "NOEL-Evidence-001.jpg";
+    const ctx = canvas.getContext("2d");
 
-  link.href = canvas.toDataURL(
-    "image/jpeg",
-    0.92
-  );
+    ctx.drawImage(
+      video,
+      0, 0,
+      canvas.width,
+      canvas.height
+    );
 
-  link.click();
+    if (placed) {
 
-  document.getElementById("flash")
-    .classList.remove("active");
+      const map = getCameraMapping();
 
-  void document.getElementById("flash").offsetWidth;
+      if (map) {
 
-  document.getElementById("flash")
-    .classList.add("active");
+        const videoX = (currentX - map.offsetX) / map.scale;
+        const videoY = (currentY - map.offsetY) / map.scale;
 
-  instruction.textContent =
-    "Evidence photograph captured.";
+        const x = videoX / video.videoWidth * canvas.width;
+        const y = videoY / video.videoHeight * canvas.height;
+
+        const size =
+          100 * currentScale / map.scale;
+
+        ctx.font = `${size}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.shadowColor = "#0009";
+        ctx.shadowBlur = 18;
+
+        ctx.fillText("🔭", x, y);
+
+        ctx.shadowBlur = 0;
+
+      }
+
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px sans-serif";
+
+    ctx.fillText(
+      "N.O.E.L. FIELD EVIDENCE 001",
+      22,
+      canvas.height - 35
+    );
+
+    const link = document.createElement("a");
+
+    link.download = "NOEL-Evidence-001.jpg";
+
+    link.href = canvas.toDataURL(
+      "image/jpeg",
+      0.92
+    );
+
+    link.click();
+
+    flash.classList.remove("active");
+
+    void flash.offsetWidth;
+
+    flash.classList.add("active");
+
+    instruction.textContent =
+      "Evidence photograph captured.";
+
+  } catch (error) {
+
+    console.error("Photo capture error:", error);
+
+    alert("Could not capture evidence: " + error.message);
+
+  }
 
 });
 
+
 // =====================================================
-// START
+// BUTTON EVENTS
 // =====================================================
 
-document.getElementById("startButton")
-.addEventListener("click",startCamera);
+startButton.addEventListener("click", startCamera);
+
+
+// =====================================================
+// VIEWPORT RESIZE
+// =====================================================
+
+window.addEventListener("resize", () => {
+
+  if (cameraActive) {
+
+    trackingInfo.textContent =
+      trackingReady
+        ? "TRACKING ACTIVE"
+        : "CAMERA ONLINE";
+
+    if (placed) {
+      updateCharacter();
+    }
+
+  }
+
+});
+
+
+// =====================================================
+// INITIALISATION
+// =====================================================
+
+console.log("N.O.E.L. Field Operations 0.3 ready.");
 
 </script>
+
 </body>
 </html>
