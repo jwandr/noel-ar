@@ -280,22 +280,20 @@ footer {
 
 </div>
 
-<!-- Free OpenCV.js computer vision library -->
+
+<!-- OpenCV.js computer vision library -->
 <script>
-var Module = {
-  onRuntimeInitialized() {
-    console.log("N.O.E.L.: OpenCV runtime ready");
-    window.dispatchEvent(new Event("opencv-ready"));
-  }
-};
+window.__opencvScriptLoaded = false;
+window.__opencvScriptError = null;
 </script>
 
 <script
   async
   src="https://docs.opencv.org/4.13.0/opencv.js"
-  onload="window.dispatchEvent(new Event('opencv-script-loaded'))"
-  onerror="window.dispatchEvent(new Event('opencv-load-error'))">
+  onload="window.__opencvScriptLoaded = true;"
+  onerror="window.__opencvScriptError = 'OpenCV script could not download.';">
 </script>
+
 
 <script>
 
@@ -455,83 +453,68 @@ function processingToScreen(x,y) {
 // LOAD OPENCV
 // =====================================================
 
+
 async function loadComputerVision() {
 
-  cvStatus.textContent = "Loading computer vision...";
+  cvStatus.textContent = "Downloading computer vision system...";
 
-  return new Promise((resolve, reject) => {
+  const deadline = Date.now() + 60000;
 
-    let finished = false;
+  // Wait for the OpenCV script to create its cv object.
+  while (
+    !window.cv &&
+    !window.__opencvScriptError &&
+    Date.now() < deadline
+  ) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 
-    const timeout = setTimeout(() => {
-      finish(new Error("OpenCV initialisation timed out."));
-    }, 60000);
+  if (window.__opencvScriptError) {
+    throw new Error(window.__opencvScriptError);
+  }
 
-    function cleanup() {
-      clearTimeout(timeout);
-      window.removeEventListener("opencv-ready", ready);
-      window.removeEventListener("opencv-load-error", failed);
-    }
+  if (!window.cv) {
+    throw new Error(
+      "OpenCV script loaded but did not initialise. Check the network connection."
+    );
+  }
 
-    async function finish(error) {
+  cvStatus.textContent = "Initialising computer vision runtime...";
 
-      if (finished) return;
-      finished = true;
-      cleanup();
+  // Crucial: cv may itself be a Promise.
+  CV = await window.cv;
 
-      if (error) {
-        reject(error);
-        return;
-      }
+  if (!CV || typeof CV.Mat !== "function") {
+    throw new Error(
+      "OpenCV loaded, but its computer vision functions are unavailable."
+    );
+  }
 
-      try {
-        const candidate = window.cv;
+  // Test that the runtime can actually create an image matrix.
+  const testMat = new CV.Mat(2, 2, CV.CV_8UC1);
+  testMat.delete();
 
-        CV = candidate &&
-          typeof candidate.then === "function"
-          ? await candidate
-          : candidate;
+  cvStatus.textContent = "COMPUTER VISION ONLINE";
+  trackingInfo.textContent = "COMPUTER VISION ONLINE";
 
-        if (!CV || typeof CV.Mat !== "function") {
-          throw new Error("OpenCV runtime is incomplete.");
-        }
+  console.log("N.O.E.L.: OpenCV successfully initialised.");
 
-        cvStatus.textContent = "COMPUTER VISION ONLINE";
-        resolve(true);
-
-      } catch (err) {
-        reject(err);
-      }
-    }
-
-    function ready() {
-      finish(null);
-    }
-
-    function failed() {
-      finish(new Error("OpenCV script failed to download."));
-    }
-
-    window.addEventListener("opencv-ready", ready);
-    window.addEventListener("opencv-load-error", failed);
-
-    // Handle an already initialised runtime.
-    if (window.cv && typeof window.cv.Mat === "function") {
-      ready();
-    }
-
-  });
+  return true;
 }
+
 
 // =====================================================
 // CAMERA STARTUP
 // =====================================================
 
+
 async function startCamera() {
+
+  const startButton = document.getElementById("startButton");
 
   try {
 
-    document.getElementById("startButton").disabled = true;
+    startButton.disabled = true;
 
     trackingStatus.textContent = "ACTIVATING";
 
@@ -546,23 +529,25 @@ async function startCamera() {
     });
 
     video.srcObject = stream;
+    cameraActive = true;
+
+    // Dismiss the welcome panel immediately.
+    welcome.classList.add("hidden");
+
+    trackingStatus.textContent = "CAMERA ACTIVE";
+    trackingInfo.textContent = "CAMERA ONLINE · VISION LOADING";
+
+    instruction.textContent =
+      "Camera activated. Preparing visual tracking...";
 
     await video.play();
 
-    cameraActive = true;
-
-    // Show the camera immediately.
-    welcome.classList.add("hidden");
-
-    trackingStatus.textContent = "LOADING VISION";
-    instruction.textContent =
-      "Camera active. Initialising visual tracking...";
-
+    // Now initialise computer vision.
     await loadComputerVision();
 
     processHeight = Math.round(
       processWidth *
-      video.videoHeight/video.videoWidth
+      video.videoHeight / video.videoWidth
     );
 
     processingCanvas.width = processWidth;
@@ -571,6 +556,7 @@ async function startCamera() {
     trackingReady = true;
 
     trackingStatus.textContent = "SCANNING ENVIRONMENT";
+    trackingInfo.textContent = "SEARCHING FOR VISUAL FEATURES";
 
     instruction.textContent =
       "Move your phone slowly across the surroundings. Tap a suitable textured area to deploy the Telescope.";
@@ -579,17 +565,25 @@ async function startCamera() {
 
   } catch(error) {
 
-    console.error(error);
+    console.error("N.O.E.L. startup error:", error);
+
+    cvStatus.textContent = "ERROR: " + error.message;
+    trackingStatus.textContent = "SYSTEM ERROR";
+    trackingInfo.textContent = "VISUAL TRACKING OFFLINE";
+
+    instruction.textContent =
+      "Initialisation failed. See the error message on the welcome panel.";
+
+    welcome.classList.remove("hidden");
+    startButton.disabled = false;
 
     alert(
-      "Unable to start the camera or computer vision system. Check your internet connection, camera permissions and HTTPS address."
+      "N.O.E.L. could not initialise:\n\n" + error.message
     );
-
-    document.getElementById("startButton").disabled = false;
-    trackingStatus.textContent = "SYSTEM ERROR";
 
   }
 }
+
 
 // =====================================================
 // IMAGE PROCESSING
