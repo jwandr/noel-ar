@@ -3,583 +3,1508 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#081321">
-<title>N.O.E.L. | First Contact</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101a20">
+<title>N.O.E.L. — Field Operative</title>
 
 <style>
 :root {
-  --mint: #62e6ce;
-  --gold: #f4c76b;
-  --ink: #081321;
-  --panel: rgba(8, 19, 33, .91);
-  --white: #f4f7f8;
+  --ink: #edf0e8;
+  --muted: #aab5b1;
+  --gold: #d8b66b;
+  --gold-light: #f0d99d;
+  --panel: rgba(13, 24, 29, .91);
+  --line: rgba(231, 218, 180, .22);
+  --green: #9db7a2;
+  --red: #d98e7c;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * { box-sizing: border-box; }
 
 html, body {
-  margin: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
-  background: var(--ink);
-  color: var(--white);
+  background: #101a20;
+  color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 35%, #34464a 0%, #1b2a30 48%, #101a20 100%);
+}
+
 #camera {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #101c2b;
-  z-index: 0;
+  display: none;
+  background: #101a20;
 }
 
-#world {
-  position: fixed;
+.camera-shade {
+  position: absolute;
   inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  touch-action: manipulation;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 12, 16, .62) 0%,
+    transparent 27%,
+    transparent 65%,
+    rgba(5, 12, 16, .72) 100%
+  );
 }
 
-#topbar {
-  position: fixed;
-  z-index: 10;
-  top: max(16px, env(safe-area-inset-top));
+#ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 48%, transparent 20%, rgba(0,0,0,.28) 100%);
+}
+
+.topbar {
+  position: absolute;
+  z-index: 5;
+  top: calc(12px + var(--safe-top));
   left: 16px;
   right: 16px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  pointer-events: none;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .brand {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: var(--mint);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-shadow: 0 2px 8px #000;
 }
 
-.brand small {
-  display: block;
-  margin-top: 4px;
+.brand strong {
+  font-size: 13px;
+  letter-spacing: .19em;
+  color: var(--gold-light);
+}
+
+.brand span {
   font-size: 9px;
-  letter-spacing: 1.7px;
-  color: #a9b9c8;
-  font-weight: 600;
+  letter-spacing: .17em;
+  color: rgba(255,255,255,.75);
 }
 
 .status {
-  border: 1px solid rgba(98,230,206,.4);
-  background: rgba(8,19,33,.8);
-  border-radius: 30px;
   padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(8, 16, 19, .6);
+  color: var(--gold-light);
   font-size: 9px;
-  letter-spacing: 1px;
-  font-weight: 800;
-  color: var(--mint);
+  letter-spacing: .13em;
+  white-space: nowrap;
 }
 
-#placementHint {
-  position: fixed;
-  z-index: 5;
-  top: 82px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: calc(100% - 40px);
-  padding: 10px 15px;
-  border-radius: 30px;
-  background: rgba(8,19,33,.8);
-  border: 1px solid rgba(255,255,255,.12);
-  color: white;
-  font-size: 11px;
+.status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  vertical-align: 1px;
+}
+
+.mission-strip {
+  position: absolute;
+  z-index: 4;
+  top: calc(67px + var(--safe-top));
+  left: 16px;
+  right: 16px;
+  padding: 11px 13px;
+  border-left: 2px solid var(--gold);
+  background: rgba(8, 16, 19, .56);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.mission-strip .eyebrow {
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .18em;
+  margin-bottom: 4px;
+}
+
+.mission-strip .mission-name {
+  font-family: Georgia, serif;
+  font-size: 17px;
+}
+
+.mission-strip .mission-sub {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+#sceneHint {
+  position: absolute;
+  z-index: 2;
+  left: 20px;
+  right: 20px;
+  top: 43%;
   text-align: center;
+  color: rgba(255,255,255,.7);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-shadow: 0 2px 6px #000;
   pointer-events: none;
 }
 
-#character {
+#operative {
   position: absolute;
-  display: none;
-  width: 150px;
-  height: 175px;
-  transform: translate(-50%, -50%);
-  transform-origin: center;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  filter: drop-shadow(0 13px 10px rgba(0,0,0,.45));
-  animation: float 3s ease-in-out infinite;
-}
-
-#character .emoji {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 112px;
-  line-height: 1;
-  filter: drop-shadow(0 3px 2px rgba(255,255,255,.12));
-}
-
-#character .sparkle {
-  position: absolute;
-  top: 6px;
-  right: 10px;
-  font-size: 24px;
-  animation: twinkle 2s ease-in-out infinite;
-}
-
-#character .shadow {
-  position: absolute;
-  bottom: -5px;
-  left: 25%;
-  width: 50%;
-  height: 15px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.38);
-  filter: blur(6px);
-  animation: shadow 3s ease-in-out infinite;
-}
-
-#speech {
-  position: absolute;
-  display: none;
-  bottom: calc(100% + 4px);
+  z-index: 3;
   left: 50%;
-  transform: translateX(-50%);
-  min-width: 175px;
-  max-width: 230px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: white;
-  color: #102030;
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.4;
-  text-align: center;
-  box-shadow: 0 5px 20px rgba(0,0,0,.25);
+  top: 54%;
+  width: 130px;
+  height: 150px;
+  transform: translate(-50%, -50%);
+  display: none;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  filter: drop-shadow(0 9px 9px rgba(0,0,0,.45));
 }
 
-#speech:after {
+#operative.deployed { display: block; }
+
+.character {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: hover 3.6s ease-in-out infinite;
+}
+
+.telescope {
+  position: relative;
+  font-size: 83px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 2px rgba(0,0,0,.35));
+  transform: rotate(-8deg);
+}
+
+.operative-eye {
+  position: absolute;
+  top: 36px;
+  left: 76px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #182126;
+  border-radius: 50%;
+  background: #f4dfaa;
+  box-shadow: 0 0 0 2px rgba(240,217,157,.55);
+  z-index: 2;
+  transition: transform .2s ease;
+}
+
+.operative-eye::after {
   content: "";
   position: absolute;
-  top: 100%;
+  width: 4px;
+  height: 4px;
+  top: 2px;
+  left: 3px;
+  border-radius: 50%;
+  background: #182126;
+}
+
+.character-label {
+  margin-top: 3px;
+  padding: 4px 8px;
+  border: 1px solid rgba(240,217,157,.5);
+  border-radius: 3px;
+  background: rgba(9,17,21,.82);
+  color: var(--gold-light);
+  font-size: 8px;
+  letter-spacing: .16em;
+  white-space: nowrap;
+}
+
+.character-shadow {
+  position: absolute;
+  bottom: 5px;
   left: 50%;
-  margin-left: -7px;
-  border: 7px solid transparent;
-  border-top-color: white;
+  width: 52px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.4);
+  filter: blur(5px);
+  transform: translateX(-50%);
+  animation: shadow 3.6s ease-in-out infinite;
 }
 
-#character.speaking #speech {
-  display: block;
-  animation: pop .2s ease-out;
+@keyframes hover {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-9px) rotate(1deg); }
+}
+@keyframes shadow {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: .6; }
+  50% { transform: translateX(-50%) scale(.78); opacity: .35; }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(.08); }
+}
+@keyframes arrival {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.5); }
+  65% { opacity: 1; transform: translate(-50%, -56%) scale(1.08); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-#bottomPanel {
-  position: fixed;
-  z-index: 10;
-  left: 14px;
-  right: 14px;
-  bottom: max(16px, env(safe-area-inset-bottom));
-  padding: 14px;
-  background: var(--panel);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 18px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+#operative.arriving .character { animation: arrival .7s ease-out; }
+#operative.blinking .operative-eye { animation: blink .45s ease; }
+#operative.dragging { cursor: grabbing; }
+#operative.dragging .character { animation: none; }
+
+.dialogue {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: calc(175px + var(--safe-bottom));
+  width: min(88%, 420px);
+  transform: translateX(-50%);
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(9, 18, 22, .88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 25px rgba(0,0,0,.2);
+  display: none;
 }
 
-#instruction {
-  text-align: center;
-  color: #b7c6d4;
-  font-size: 11px;
-  margin: 0 0 12px;
+.dialogue.visible { display: block; animation: fadeUp .25s ease-out; }
+
+.dialogue .speaker {
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .17em;
+  margin-bottom: 6px;
+}
+
+.dialogue p {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 15px;
   line-height: 1.4;
 }
 
-.controls {
-  display: flex;
-  gap: 8px;
-}
-
-button {
-  appearance: none;
-  border: 0;
-  border-radius: 11px;
-  padding: 13px 10px;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: .6px;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-button:active { transform: scale(.97); }
-
-.primary {
-  flex: 1;
-  background: var(--mint);
-  color: #071a20;
-}
-
-.secondary {
-  flex: 1;
-  background: rgba(255,255,255,.1);
-  color: white;
-  border: 1px solid rgba(255,255,255,.14);
-}
-
-#briefing {
-  position: fixed;
-  z-index: 30;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 25px;
-  background:
-    radial-gradient(ellipse at 50% 35%, rgba(29,78,91,.7), transparent 65%),
-    #081321;
-}
-
-.briefing-card {
-  width: 100%;
-  max-width: 390px;
-  text-align: center;
-  padding: 28px 22px;
-  border-radius: 22px;
-  border: 1px solid rgba(98,230,206,.3);
-  background: rgba(13,29,45,.88);
-  box-shadow: 0 20px 70px rgba(0,0,0,.35);
-}
-
-.seal {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 3px;
-  color: var(--mint);
-}
-
-.briefing-telescope {
-  font-size: 94px;
-  margin: 22px 0 12px;
-  display: block;
-  animation: float 3s ease-in-out infinite;
-  filter: drop-shadow(0 12px 12px rgba(0,0,0,.4));
-}
-
-.briefing-card h1 {
-  font-size: 27px;
-  line-height: 1.1;
-  margin: 0 0 12px;
-  letter-spacing: 1px;
-}
-
-.briefing-card h1 span { color: var(--mint); }
-
-.briefing-card p {
-  color: #b9c8d5;
-  font-size: 13px;
-  line-height: 1.65;
-  margin: 0 0 22px;
-}
-
-.mission-label {
-  color: var(--gold);
+.dialogue .tap-hint {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 9px;
-  letter-spacing: 2px;
-  font-weight: 900;
+  margin-top: 8px;
+  letter-spacing: .08em;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.bottom-area {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 16px calc(14px + var(--safe-bottom));
+  background: linear-gradient(transparent, rgba(5,12,16,.9) 24%);
+}
+
+.deploy-prompt {
+  text-align: center;
+  color: rgba(255,255,255,.75);
+  font-size: 11px;
   margin-bottom: 12px;
 }
 
-#launch {
-  width: 100%;
-  padding: 16px;
-  background: var(--mint);
-  color: #071a20;
-  border-radius: 12px;
-  font-size: 13px;
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-#cameraError {
+.control {
+  min-height: 48px;
+  padding: 9px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(12,23,27,.86);
+  color: var(--ink);
+  font-size: 10px;
+  letter-spacing: .07em;
+  transition: background .2s, border-color .2s, transform .15s;
+}
+
+.control:active { transform: scale(.97); }
+.control.primary {
+  border-color: rgba(216,182,107,.7);
+  color: var(--gold-light);
+  background: rgba(92,72,35,.45);
+}
+.control:disabled { opacity: .35; cursor: default; }
+
+.control .symbol {
+  display: block;
+  font-size: 17px;
+  margin-bottom: 4px;
+}
+
+.secondary-controls {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 12px;
+}
+
+.text-control {
+  border: 0;
+  background: transparent;
+  color: rgba(235,239,231,.72);
+  font-size: 10px;
+  letter-spacing: .1em;
+  padding: 7px 3px;
+}
+
+.text-control:active { color: var(--gold-light); }
+
+#cameraMessage {
   display: none;
-  margin-top: 14px;
-  color: #ffb6a9;
+  position: absolute;
+  z-index: 3;
+  top: 48%;
+  left: 10%;
+  right: 10%;
+  text-align: center;
+  color: rgba(255,255,255,.7);
   font-size: 11px;
   line-height: 1.5;
 }
 
-#toast {
-  position: fixed;
+#cameraMessage.visible { display: block; }
+
+/* Panels and modal */
+.scrim {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.scrim.open { display: flex; }
+
+.panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: 88%;
+  overflow-y: auto;
+  padding: 22px 20px calc(22px + var(--safe-bottom));
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: #17252a;
+  box-shadow: 0 -15px 50px rgba(0,0,0,.35);
+  animation: panelUp .25s ease-out;
+}
+
+@keyframes panelUp {
+  from { transform: translateY(35px); opacity: .5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .19em;
+  margin-bottom: 6px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 25px;
+}
+
+.panel h3 {
+  margin: 19px 0 8px;
+  color: var(--gold-light);
+  font-size: 11px;
+  letter-spacing: .12em;
+  font-weight: 600;
+}
+
+.panel p {
+  color: #c5cfca;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.close {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  background: transparent;
+  font-size: 18px;
+}
+
+.briefing-quote {
+  padding: 14px;
+  border-left: 2px solid var(--gold);
+  background: rgba(0,0,0,.17);
+  color: #e1e5dc;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.objective {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: #d5ddd6;
+  font-size: 12px;
+}
+
+.objective .tick {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  font-size: 11px;
+}
+
+.objective.done .tick {
+  border-color: var(--green);
+  background: rgba(157,183,162,.18);
+  color: var(--green);
+}
+.objective.done span:last-child { color: var(--green); }
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin: 13px 0 16px;
+}
+
+.category {
+  min-height: 68px;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(255,255,255,.025);
+  color: var(--ink);
+}
+.category.selected {
+  border-color: var(--gold);
+  background: rgba(216,182,107,.12);
+}
+.category strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.category small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 10px;
+}
+.category .cat-icon {
+  float: right;
+  font-size: 18px;
+}
+
+.field-label {
+  display: block;
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .14em;
+  margin: 14px 0 7px;
+}
+
+.field {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px;
+  background: rgba(0,0,0,.2);
+  color: var(--ink);
+  outline: none;
+  font-size: 13px;
+}
+.field:focus { border-color: var(--gold); }
+.field::placeholder { color: #82908b; }
+textarea.field { min-height: 76px; resize: vertical; }
+
+.action {
+  width: 100%;
+  min-height: 47px;
+  margin-top: 14px;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  background: rgba(216,182,107,.17);
+  color: var(--gold-light);
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+.action:disabled { opacity: .35; }
+
+.subtle-action {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+.report-card {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--gold);
+  background: rgba(0,0,0,.15);
+}
+.report-card .report-meta {
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: .13em;
+}
+.report-card h4 {
+  margin: 8px 0 6px;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+}
+.report-card p {
+  margin: 6px 0;
+  font-size: 12px;
+}
+.report-card .comment {
+  color: #aebdb5;
+  font-style: italic;
+}
+
+.empty {
+  padding: 26px 12px;
+  text-align: center;
+  color: var(--muted);
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.progress-track {
+  height: 5px;
+  background: rgba(255,255,255,.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 12px 0 5px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  transition: width .3s ease;
+}
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.footer-note {
+  margin-top: 18px;
+  color: #82908b;
+  font-size: 9px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.toast {
+  position: absolute;
   z-index: 20;
   left: 50%;
-  bottom: 150px;
-  transform: translateX(-50%);
-  padding: 10px 15px;
-  background: rgba(8,19,33,.92);
-  border: 1px solid rgba(98,230,206,.3);
-  color: white;
+  top: calc(120px + var(--safe-top));
+  transform: translateX(-50%) translateY(-8px);
+  padding: 10px 14px;
+  max-width: 86%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(9,18,22,.94);
+  color: var(--gold-light);
+  text-align: center;
   font-size: 11px;
-  border-radius: 30px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .2s;
-  white-space: nowrap;
+  transition: opacity .2s, transform .2s;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
-#toast.show { opacity: 1; }
-
-@keyframes float {
-  0%, 100% { margin-top: 0; }
-  50% { margin-top: -12px; }
-}
-
-@keyframes shadow {
-  0%, 100% { transform: scaleX(1); opacity: .7; }
-  50% { transform: scaleX(.75); opacity: .4; }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: .4; transform: scale(.8) rotate(0); }
-  50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
-}
-
-@keyframes pop {
-  from { opacity: 0; transform: translate(-50%, 8px) scale(.9); }
-  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+@media (min-width: 700px) {
+  .bottom-area { left: 50%; width: 500px; transform: translateX(-50%); }
+  .scrim { align-items: center; padding: 20px; }
+  .panel { border-bottom: 1px solid var(--line); border-radius: 12px; }
 }
 </style>
 </head>
 
 <body>
+<div id="app">
 
-<video id="camera" autoplay muted playsinline></video>
+  <video id="camera" autoplay muted playsinline></video>
+  <div class="camera-shade"></div>
+  <div id="ambient"></div>
 
-<div id="world">
-  <div id="character" aria-label="Telescope character">
-    <div id="speech">Hello! I was expecting you. 🔭</div>
-    <div class="emoji">🔭</div>
-    <div class="sparkle">✦</div>
-    <div class="shadow"></div>
+  <header class="topbar">
+    <div class="brand">
+      <strong>N.O.E.L.</strong>
+      <span>NATIONAL OFFICE OF EMOJI LIAISON</span>
+    </div>
+    <div class="status" id="status">HEADQUARTERS LINK</div>
+  </header>
+
+  <section class="mission-strip">
+    <div class="eyebrow">CURRENT ASSIGNMENT · 001</div>
+    <div class="mission-name">The Human World</div>
+    <div class="mission-sub" id="missionSummary">Initial field observations required.</div>
+  </section>
+
+  <div id="sceneHint">AWAITING OPERATIVE DEPLOYMENT</div>
+  <div id="cameraMessage">Camera access is not currently active.<br>Deploy the operative to begin.</div>
+
+  <div id="operative" aria-label="Operative T-01">
+    <div class="character-shadow"></div>
+    <div class="character">
+      <div class="telescope">🔭</div>
+      <div class="operative-eye"></div>
+      <div class="character-label">OPERATIVE T-01</div>
+    </div>
   </div>
-</div>
 
-<div id="topbar">
-  <div class="brand">
-    N.O.E.L.
-    <small>NATIONAL OFFICE OF EMOJI LIAISON</small>
+  <div class="dialogue" id="dialogue">
+    <div class="speaker">OPERATIVE T-01 · FIELD TRANSMISSION</div>
+    <p id="dialogueText">Ah. You're here. Excellent. I was beginning to suspect I'd been abandoned.</p>
+    <div class="tap-hint">TAP OPERATIVE TO COMMUNICATE</div>
   </div>
-  <div class="status" id="status">CAMERA STANDBY</div>
-</div>
 
-<div id="placementHint">Awaiting first contact…</div>
-
-<div id="bottomPanel">
-  <p id="instruction">Launch your camera, then tap somewhere in your surroundings to deploy your telescope.</p>
-  <div class="controls">
-    <button class="primary" id="placeButton">PLACE TELESCOPE</button>
-    <button class="secondary" id="resetButton">RESET</button>
-    <button class="secondary" id="cameraButton">CAMERA OFF</button>
+  <div class="bottom-area">
+    <div class="deploy-prompt" id="deployPrompt">Your operative is standing by.</div>
+    <div class="controls">
+      <button class="control primary" id="deployBtn">
+        <span class="symbol">⌖</span>DEPLOY
+      </button>
+      <button class="control" id="investigateBtn" disabled>
+        <span class="symbol">◎</span>INVESTIGATE
+      </button>
+      <button class="control" id="journalBtn">
+        <span class="symbol">▤</span>FIELD JOURNAL
+      </button>
+    </div>
+    <div class="secondary-controls">
+      <button class="text-control" id="briefingBtn">MISSION BRIEFING</button>
+      <button class="text-control" id="reportBtn">REPORT TO HQ</button>
+      <button class="text-control" id="cameraBtn">CAMERA ON</button>
+    </div>
   </div>
-</div>
 
-<div id="toast"></div>
+  <div class="toast" id="toast"></div>
 
-<div id="briefing">
-  <div class="briefing-card">
-    <div class="seal">N.O.E.L. • FIELD OPERATIONS</div>
-    <span class="briefing-telescope">🔭</span>
-    <div class="mission-label">MISSION 001 — FIRST CONTACT</div>
-    <h1>THE WORLD IS<br><span>YOUR PLAYGROUND.</span></h1>
-    <p>
-      An unusual sighting has been reported in your vicinity.
-      Your assistance is requested to locate, deploy and supervise
-      our newest field operative.
-      <br><br>
-      Please activate your camera to begin.
-    </p>
-    <button id="launch">ACTIVATE FIELD CAMERA</button>
-    <div id="cameraError"></div>
+  <!-- MISSION BRIEFING -->
+  <div class="scrim" id="briefingModal">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">N.O.E.L. · PERSONNEL DISPATCH</div>
+          <h2>Mission 001</h2>
+        </div>
+        <button class="close" data-close="briefingModal">×</button>
+      </div>
+      <h3>THE HUMAN WORLD</h3>
+      <div class="briefing-quote">
+        Operative T-01, you are hereby assigned to Earth Observation. Your task is to document the peculiar habits, objects and environments encountered in human civilisation.
+        <br><br>
+        Please exercise discretion. Humans are notoriously unpredictable, particularly before breakfast.
+      </div>
+      <h3>MISSION OBJECTIVES</h3>
+      <div id="briefingObjectives"></div>
+      <div class="progress-track"><div class="progress-fill" id="briefingProgress"></div></div>
+      <div class="progress-caption">
+        <span>MISSION PROGRESS</span><span id="briefingProgressText">0 / 4</span>
+      </div>
+      <p>Three observations and a submitted field report are required to complete your probationary assignment.</p>
+      <button class="action" data-close="briefingModal">UNDERSTOOD. PROCEED.</button>
+    </section>
   </div>
+
+  <!-- INVESTIGATION -->
+  <div class="scrim" id="investigateModal">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">FIELDWORK · NEW OBSERVATION</div>
+          <h2>What have we here?</h2>
+        </div>
+        <button class="close" data-close="investigateModal">×</button>
+      </div>
+      <p>Identify the subject of your investigation. The operative will prepare an assessment based on your description. Headquarters has not yet approved a budget for mind-reading.</p>
+
+      <h3>SELECT SUBJECT CLASSIFICATION</h3>
+      <div class="category-grid" id="categoryGrid">
+        <button class="category selected" data-category="Nature">
+          <span class="cat-icon">🌿</span><strong>Nature</strong><small>Plants, landscapes, weather</small>
+        </button>
+        <button class="category" data-category="Everyday object">
+          <span class="cat-icon">🪑</span><strong>Everyday object</strong><small>Things humans have invented</small>
+        </button>
+        <button class="category" data-category="Human activity">
+          <span class="cat-icon">🧍</span><strong>Human activity</strong><small>Customs, habits, behaviour</small>
+        </button>
+        <button class="category" data-category="Architecture">
+          <span class="cat-icon">🏛️</span><strong>Architecture</strong><small>Buildings and structures</small>
+        </button>
+        <button class="category" data-category="Animal">
+          <span class="cat-icon">🐦</span><strong>Animal</strong><small>Non-human personnel</small>
+        </button>
+      </div>
+
+      <label class="field-label" for="subjectInput">WHAT ARE WE OBSERVING?</label>
+      <input class="field" id="subjectInput" maxlength="70" placeholder="e.g. a magpie, a coffee machine, a tree">
+
+      <label class="field-label" for="detailInput">FIELD NOTES (OPTIONAL)</label>
+      <textarea class="field" id="detailInput" maxlength="220" placeholder="Anything unusual worth mentioning?"></textarea>
+
+      <button class="action" id="fileObservationBtn">SUBMIT FIELD OBSERVATION</button>
+      <button class="subtle-action" data-close="investigateModal">CANCEL INVESTIGATION</button>
+    </section>
+  </div>
+
+  <!-- JOURNAL -->
+  <div class="scrim" id="journalModal">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">CLASSIFIED · PERSONNEL RECORD</div>
+          <h2>Field Journal</h2>
+        </div>
+        <button class="close" data-close="journalModal">×</button>
+      </div>
+      <p>A record of observations submitted by Operative T-01. Accuracy is encouraged, although not always expected.</p>
+      <div id="journalEntries"></div>
+      <div class="footer-note">ALL REPORTS ARE PROPERTY OF THE NATIONAL OFFICE OF EMOJI LIAISON.</div>
+      <button class="subtle-action" data-close="journalModal">CLOSE JOURNAL</button>
+    </section>
+  </div>
+
+  <!-- HEADQUARTERS REPORT -->
+  <div class="scrim" id="reportModal">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">SECURE TRANSMISSION · HEADQUARTERS</div>
+          <h2>End of assignment</h2>
+        </div>
+        <button class="close" data-close="reportModal">×</button>
+      </div>
+      <div id="reportContent"></div>
+      <button class="action" id="submitReportBtn">TRANSMIT FIELD REPORT</button>
+      <button class="subtle-action" data-close="reportModal">RETURN TO FIELD</button>
+    </section>
+  </div>
+
+  <!-- MISSION COMPLETE -->
+  <div class="scrim" id="completeModal">
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">HEADQUARTERS · PERSONNEL UPDATE</div>
+          <h2>Mission accomplished</h2>
+        </div>
+        <button class="close" data-close="completeModal">×</button>
+      </div>
+      <div class="briefing-quote">
+        Operative T-01, your initial field report has been received and reviewed.
+        <br><br>
+        You are hereby awarded the designation:
+        <br><br>
+        <strong style="color:var(--gold-light);letter-spacing:.12em">PROBATIONARY OBSERVER</strong>
+        <br><br>
+        This is not, strictly speaking, a promotion. But it is a start.
+      </div>
+      <p id="completionStats"></p>
+      <button class="action" data-close="completeModal">RETURN TO DUTY</button>
+    </section>
+  </div>
+
 </div>
 
 <script>
-const video = document.getElementById("camera");
-const briefing = document.getElementById("briefing");
-const character = document.getElementById("character");
-const statusLabel = document.getElementById("status");
-const hint = document.getElementById("placementHint");
-const instruction = document.getElementById("instruction");
-const errorBox = document.getElementById("cameraError");
-const toast = document.getElementById("toast");
+(() => {
+  "use strict";
 
-let stream = null;
-let placed = false;
-let toastTimer = null;
+  const $ = id => document.getElementById(id);
 
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
-}
+  const STORAGE_KEY = "noel_field_operative_v1";
 
-async function startCamera() {
-  errorBox.style.display = "none";
-  statusLabel.textContent = "CONNECTING…";
+  const defaultState = {
+    deployed: false,
+    cameraOn: false,
+    selectedCategory: "Nature",
+    observations: [],
+    submitted: false,
+    completed: false,
+    left: 50,
+    top: 54
+  };
 
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    statusLabel.textContent = "CAMERA UNAVAILABLE";
-    errorBox.textContent =
-      "Camera access is not supported here. Please open this page in Safari over HTTPS.";
-    errorBox.style.display = "block";
-    return false;
+  let state = loadState();
+  let cameraStream = null;
+  let tapCount = 0;
+  let toastTimer = null;
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      return saved ? { ...defaultState, ...saved } : { ...defaultState };
+    } catch {
+      return { ...defaultState };
+    }
   }
 
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 }
-      }
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.warn("N.O.E.L. could not save local records.", error);
+    }
+  }
+
+  const dialogueLines = {
+    greeting: [
+      "Ah. You're here. Excellent. I was beginning to suspect I'd been abandoned.",
+      "Operative T-01 reporting for duty. I trust the situation has not deteriorated in my absence.",
+      "Good morning. Or afternoon. Headquarters has not supplied me with a clock.",
+      "I have been ready for some time. I chose not to make a fuss."
+    ],
+    waiting: [
+      "I have been observing this location for some time. It remains largely unchanged.",
+      "A quiet posting. One might almost suspect it was deliberate.",
+      "I have noticed several things. Most of them appear to be stationary.",
+      "I don't wish to alarm you, but the surroundings continue to exist.",
+      "I am beginning to understand why humans invented weekends."
+    ],
+    repeated: [
+      "Yes, yes. I am aware of your presence.",
+      "You needn't keep checking. I remain magnificently operational.",
+      "Is there a reason you keep tapping me? I am not a doorbell.",
+      "I shall add 'persistent supervision' to my report."
+    ],
+    curious: [
+      "An intriguing development. I shall exaggerate its importance in my report.",
+      "Remarkable. I have no idea what that means, but I am impressed.",
+      "I recommend we investigate further. Preferably after a short break.",
+      "I have seen stranger things. Not many, admittedly.",
+      "I have a theory. It is probably wrong, but it is a theory."
+    ],
+    idle: [
+      "Headquarters has asked me to remain alert. I have interpreted this as a general instruction.",
+      "I have been promised a desk upon successful completion of this assignment. I remain hopeful.",
+      "Do you suppose humans know how odd they are?",
+      "I have requested a modest field allowance. They sent me a pamphlet.",
+      "My last operative review described me as 'technically present'. I consider that unfair."
+    ]
+  };
+
+  const categoryComments = {
+    "Nature": [
+      "Nature appears to be operating without any visible management structure. Bold.",
+      "A pleasing example of the outdoors. I shall recommend further outdoors.",
+      "The natural world is alarmingly self-sufficient. One to watch."
+    ],
+    "Everyday object": [
+      "A remarkable human invention. It appears to solve a problem humans may have invented themselves.",
+      "I admire the confidence with which humans surround themselves with objects.",
+      "Useful, presumably. I shall reserve judgement until I have read the manual."
+    ],
+    "Human activity": [
+      "Humans are an extraordinary species. I mean that in the most diplomatic sense.",
+      "A fascinating ritual. I suspect there are rules. There are always rules.",
+      "I have observed this behaviour and remain professionally puzzled."
+    ],
+    "Architecture": [
+      "An ambitious arrangement of materials. It appears to be keeping the weather out.",
+      "Humans build enormous boxes and then spend most of their time inside them.",
+      "Structurally impressive. I would have gone with something smaller."
+    ],
+    "Animal": [
+      "A non-human operative. Appears to be working without supervision.",
+      "Excellent field conduct. No paperwork, no meetings, no apparent concerns.",
+      "I have attempted to establish contact. The subject declined to acknowledge my authority."
+    ]
+  };
+
+  const objectiveDefinitions = [
+    {
+      id: "nature",
+      label: "Observe something natural",
+      check: o => o.category === "Nature" || o.category === "Animal"
+    },
+    {
+      id: "object",
+      label: "Investigate an everyday object",
+      check: o => o.category === "Everyday object"
+    },
+    {
+      id: "human",
+      label: "Record an unusual human activity",
+      check: o => o.category === "Human activity"
+    },
+    {
+      id: "report",
+      label: "Submit your initial field report",
+      check: () => state.submitted
+    }
+  ];
+
+  function completedObjectives() {
+    return objectiveDefinitions.filter(obj =>
+      obj.id === "report" ? state.submitted : state.observations.some(obj.check)
+    ).length;
+  }
+
+  function showToast(message) {
+    const toast = $("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+  }
+
+  function speak(message, duration = 7000) {
+    $("dialogueText").textContent = message;
+    $("dialogue").classList.add("visible");
+    clearTimeout(speak.timer);
+    speak.timer = setTimeout(() => {
+      $("dialogue").classList.remove("visible");
+    }, duration);
+  }
+
+  function randomLine(group) {
+    const lines = dialogueLines[group];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  function openModal(id) {
+    $(id).classList.add("open");
+  }
+
+  function closeModal(id) {
+    $(id).classList.remove("open");
+  }
+
+  document.querySelectorAll("[data-close]").forEach(button => {
+    button.addEventListener("click", () => closeModal(button.dataset.close));
+  });
+
+  document.querySelectorAll(".scrim").forEach(scrim => {
+    scrim.addEventListener("click", event => {
+      if (event.target === scrim) scrim.classList.remove("open");
     });
+  });
 
-    video.srcObject = stream;
-    await video.play();
+  function updateUI() {
+    $("operative").classList.toggle("deployed", state.deployed);
+    $("investigateBtn").disabled = !state.deployed;
+    $("deployBtn").innerHTML = state.deployed
+      ? '<span class="symbol">↻</span>REPOSITION'
+      : '<span class="symbol">⌖</span>DEPLOY';
 
-    statusLabel.textContent = "CAMERA ONLINE";
-    briefing.style.display = "none";
-    hint.textContent = "Tap anywhere to deploy your telescope";
-    instruction.textContent =
-      "Choose a spot in your surroundings. Tap PLACE TELESCOPE or tap directly on the camera view.";
+    $("deployPrompt").textContent = state.deployed
+      ? "Operative T-01 is deployed. Tap to communicate."
+      : "Your operative is standing by.";
 
-    showToast("Field camera activated. Welcome, operative.");
-    return true;
+    $("sceneHint").style.display = state.deployed ? "none" : "block";
+    $("cameraMessage").classList.toggle("visible", !state.cameraOn);
 
-  } catch (error) {
-    statusLabel.textContent = "CAMERA ERROR";
-    errorBox.textContent = error.message || "Unable to access camera.";
-    errorBox.style.display = "block";
+    $("operative").style.left = state.left + "%";
+    $("operative").style.top = state.top + "%";
 
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      stream = null;
+    $("status").textContent = state.cameraOn ? "FIELD LINK ACTIVE" : "FIELD LINK STANDBY";
+    $("cameraBtn").textContent = state.cameraOn ? "CAMERA OFF" : "CAMERA ON";
+
+    const count = completedObjectives();
+    $("missionSummary").textContent = state.completed
+      ? "Probationary Observer · Mission complete"
+      : `${count} of 4 objectives completed`;
+
+    $("reportBtn").textContent = state.submitted ? "REPORT FILED ✓" : "REPORT TO HQ";
+    renderObjectives();
+  }
+
+  function renderObjectives() {
+    const html = objectiveDefinitions.map(obj => {
+      const done = obj.id === "report"
+        ? state.submitted
+        : state.observations.some(obj.check);
+
+      return `<div class="objective ${done ? "done" : ""}">
+        <span class="tick">✓</span><span>${obj.label}</span>
+      </div>`;
+    }).join("");
+
+    $("briefingObjectives").innerHTML = html;
+
+    const count = completedObjectives();
+    $("briefingProgress").style.width = (count / 4 * 100) + "%";
+    $("briefingProgressText").textContent = `${count} / 4`;
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast("This browser does not support camera access.");
+      return;
     }
-    return false;
-  }
-}
 
-function placeCharacter(x, y) {
-  const margin = 85;
-  x = Math.max(margin, Math.min(window.innerWidth - margin, x));
-  y = Math.max(150, Math.min(window.innerHeight - 175, y));
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      });
 
-  character.style.left = x + "px";
-  character.style.top = y + "px";
-  character.style.display = "block";
-  character.classList.remove("speaking");
+      const video = $("camera");
+      video.srcObject = cameraStream;
+      await video.play();
 
-  placed = true;
-  hint.textContent = "OPERATIVE DEPLOYED • TAP TO REPOSITION";
-  instruction.textContent =
-    "Your telescope is on location. Tap the character to interact, or tap elsewhere to move it.";
-  statusLabel.textContent = "OPERATIVE ACTIVE";
-}
+      video.style.display = "block";
+      state.cameraOn = true;
+      $("ambient").style.background = "transparent";
+      $("cameraMessage").classList.remove("visible");
+      saveState();
+      updateUI();
+      showToast("Field camera connected. Try not to look suspicious.");
+    } catch (error) {
+      console.error(error);
+      state.cameraOn = false;
+      updateUI();
 
-function deployInCentre() {
-  placeCharacter(window.innerWidth / 2, window.innerHeight / 2);
-  showToast("Telescope deployed!");
-}
-
-document.getElementById("launch").addEventListener("click", startCamera);
-
-document.getElementById("placeButton").addEventListener("click", () => {
-  if (!stream) {
-    showToast("Please activate the camera first.");
-    return;
-  }
-  deployInCentre();
-});
-
-document.getElementById("resetButton").addEventListener("click", () => {
-  character.style.display = "none";
-  character.classList.remove("speaking");
-  placed = false;
-  hint.textContent = "Awaiting first contact…";
-  instruction.textContent =
-    "Tap PLACE TELESCOPE or tap somewhere in your surroundings to deploy your operative.";
-  statusLabel.textContent = stream ? "CAMERA ONLINE" : "CAMERA STANDBY";
-  showToast("Operative recalled. Ready for redeployment.");
-});
-
-document.getElementById("cameraButton").addEventListener("click", async () => {
-  if (stream) {
-    stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    video.srcObject = null;
-    statusLabel.textContent = "CAMERA STANDBY";
-    document.getElementById("cameraButton").textContent = "CAMERA ON";
-    showToast("Field camera switched off.");
-  } else {
-    const success = await startCamera();
-    if (success) {
-      document.getElementById("cameraButton").textContent = "CAMERA OFF";
+      if (error.name === "NotAllowedError") {
+        showToast("Camera permission was declined. You can enable it in Safari settings.");
+      } else if (error.name === "NotFoundError") {
+        showToast("No camera could be found on this device.");
+      } else {
+        showToast("Camera unavailable. The mission can continue without it.");
+      }
     }
   }
-});
 
-document.getElementById("world").addEventListener("click", event => {
-  if (!stream) return;
-  if (event.target.closest("#character")) return;
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
 
-  placeCharacter(event.clientX, event.clientY);
-});
+    $("camera").srcObject = null;
+    $("camera").style.display = "none";
+    $("ambient").style.background = "";
+    state.cameraOn = false;
+    saveState();
+    updateUI();
+  }
 
-character.addEventListener("click", event => {
-  event.stopPropagation();
-  character.classList.toggle("speaking");
+  $("cameraBtn").addEventListener("click", () => {
+    if (state.cameraOn) stopCamera();
+    else startCamera();
+  });
 
-  if (character.classList.contains("speaking")) {
-    const messages = [
-      "Hello! I was expecting you. 🔭",
-      "I can see things from here. Mostly.",
-      "Is this the right planet?",
-      "I have important telescope business to attend to.",
-      "Please do not point me at the sun. I am very sensitive."
+  function deployOperative() {
+    if (!state.deployed) {
+      state.deployed = true;
+      state.left = 50;
+      state.top = 54;
+      saveState();
+      updateUI();
+
+      $("operative").classList.remove("arriving");
+      void $("operative").offsetWidth;
+      $("operative").classList.add("arriving");
+
+      speak(randomLine("greeting"), 9000);
+      showToast("Operative T-01 successfully deployed.");
+    } else {
+      state.left = 50;
+      state.top = 54;
+      saveState();
+      updateUI();
+      speak("Repositioning complete. I trust this location meets your exacting standards.");
+    }
+  }
+
+  $("deployBtn").addEventListener("click", deployOperative);
+
+  // Drag the operative around the screen.
+  let dragStart = null;
+
+  $("operative").addEventListener("pointerdown", event => {
+    if (event.target.closest(".character-label")) return;
+    dragStart = {
+      x: event.clientX,
+      y: event.clientY,
+      left: state.left,
+      top: state.top,
+      moved: false
+    };
+    $("operative").classList.add("dragging");
+    $("operative").setPointerCapture(event.pointerId);
+  });
+
+  $("operative").addEventListener("pointermove", event => {
+    if (!dragStart) return;
+
+    const dx = event.clientX - dragStart.x;
+    const dy = event.clientY - dragStart.y;
+
+    if (Math.abs(dx) + Math.abs(dy) > 7) dragStart.moved = true;
+    if (!dragStart.moved) return;
+
+    state.left = Math.max(12, Math.min(88, dragStart.left + dx / window.innerWidth * 100));
+    state.top = Math.max(24, Math.min(76, dragStart.top + dy / window.innerHeight * 100));
+    $("operative").style.left = state.left + "%";
+    $("operative").style.top = state.top + "%";
+  });
+
+  $("operative").addEventListener("pointerup", () => {
+    if (!dragStart) return;
+    const moved = dragStart.moved;
+    dragStart = null;
+    $("operative").classList.remove("dragging");
+
+    if (moved) {
+      saveState();
+    } else {
+      operativeTapped();
+    }
+  });
+
+  $("operative").addEventListener("pointercancel", () => {
+    dragStart = null;
+    $("operative").classList.remove("dragging");
+  });
+
+  function operativeTapped() {
+    tapCount++;
+
+    const line = tapCount % 4 === 0
+      ? randomLine("repeated")
+      : tapCount % 3 === 0
+        ? randomLine("curious")
+        : randomLine("waiting");
+
+    $("operative").classList.remove("blinking");
+    void $("operative").offsetWidth;
+    $("operative").classList.add("blinking");
+
+    speak(line);
+  }
+
+  $("investigateBtn").addEventListener("click", () => {
+    if (!state.deployed) {
+      showToast("Please deploy the operative first.");
+      return;
+    }
+    $("subjectInput").value = "";
+    $("detailInput").value = "";
+    selectCategory(state.selectedCategory);
+    openModal("investigateModal");
+  });
+
+  function selectCategory(category) {
+    state.selectedCategory = category;
+    document.querySelectorAll(".category").forEach(button => {
+      button.classList.toggle("selected", button.dataset.category === category);
+    });
+  }
+
+  document.querySelectorAll(".category").forEach(button => {
+    button.addEventListener("click", () => selectCategory(button.dataset.category));
+  });
+
+  function makeAssessment(category, subject, detail) {
+    const lines = categoryComments[category];
+    const comment = lines[Math.floor(Math.random() * lines.length)];
+
+    const extra = detail
+      ? ` Additional note: "${detail}"`
+      : "";
+
+    const verdicts = [
+      "Further investigation recommended.",
+      "No immediate action required.",
+      "Worth keeping an eye on.",
+      "Potentially significant. I shall alert nobody until further notice.",
+      "Filed for future reference, and possible promotion."
     ];
 
-    document.getElementById("speech").textContent =
-      messages[Math.floor(Math.random() * messages.length)];
-  }
-});
+    const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
 
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden && stream) {
-    statusLabel.textContent = "CAMERA PAUSED";
+    return {
+      comment: `${comment}${extra}`,
+      verdict
+    };
   }
-});
 
-window.addEventListener("resize", () => {
-  if (placed) {
-    const x = parseFloat(character.style.left);
-    const y = parseFloat(character.style.top);
-    placeCharacter(
-      Math.min(x, window.innerWidth - 85),
-      Math.min(y, window.innerHeight - 175)
-    );
+  $("fileObservationBtn").addEventListener("click", () => {
+    const subject = $("subjectInput").value.trim();
+    const detail = $("detailInput").value.trim();
+    const category = state.selectedCategory;
+
+    if (!subject) {
+      showToast("Please identify the subject of your investigation.");
+      $("subjectInput").focus();
+      return;
+    }
+
+    const assessment = makeAssessment(category, subject, detail);
+
+    const observation = {
+      id: Date.now(),
+      category,
+      subject,
+      detail,
+      comment: assessment.comment,
+      verdict: assessment.verdict,
+      date: new Date().toISOString()
+    };
+
+    state.observations.unshift(observation);
+    saveState();
+    closeModal("investigateModal");
+    updateUI();
+
+    speak(`SUBJECT IDENTIFIED: ${subject}. ${assessment.comment}`, 10000);
+    showToast("Observation filed. Headquarters has been notified.");
+
+    if (!state.completed && completedObjectives() === 3) {
+      setTimeout(() => {
+        speak("I believe we have enough material for an initial report. I suggest we submit it before anyone asks for more.", 9000);
+      }, 2200);
+    }
+  });
+
+  $("journalBtn").addEventListener("click", () => {
+    renderJournal();
+    openModal("journalModal");
+  });
+
+  function renderJournal() {
+    const container = $("journalEntries");
+
+    if (!state.observations.length) {
+      container.innerHTML = `<div class="empty">
+        No field observations recorded.<br>
+        A somewhat disappointing start to the assignment.
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = state.observations.map((o, index) => {
+      const date = new Date(o.date).toLocaleString([], {
+        day: "numeric", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      });
+
+      return `<article class="report-card">
+        <div class="report-meta">FIELD REPORT ${String(state.observations.length - index).padStart(3, "0")} · ${escapeHTML(o.category.toUpperCase())}</div>
+        <h4>${escapeHTML(o.subject)}</h4>
+        <div class="report-meta">${escapeHTML(date)}</div>
+        <p>${escapeHTML(o.comment)}</p>
+        <p class="comment">${escapeHTML(o.verdict)}</p>
+      </article>`;
+    }).join("");
   }
-});
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    })[char]);
+  }
+
+  $("briefingBtn").addEventListener("click", () => {
+    renderObjectives();
+    openModal("briefingModal");
+  });
+
+  $("reportBtn").addEventListener("click", () => {
+    renderReport();
+    openModal("reportModal");
+  });
+
+  function renderReport() {
+    const count = state.observations.length;
+    const objectives = completedObjectives();
+
+    $("reportContent").innerHTML = `
+      <div class="briefing-quote">
+        Operative T-01 has completed ${count} field observation${count === 1 ? "" : "s"}.
+        <br><br>
+        ${count >= 3
+          ? "Sufficient evidence has been gathered to submit the initial field report."
+          : "Further observations are recommended before the initial field report is submitted."}
+      </div>
+      <h3>ASSIGNMENT SUMMARY</h3>
+      <div class="objective ${state.observations.some(o => o.category === "Nature" || o.category === "Animal") ? "done" : ""}">
+        <span class="tick">✓</span><span>Natural world observations</span>
+      </div>
+      <div class="objective ${state.observations.some(o => o.category === "Everyday object") ? "done" : ""}">
+        <span class="tick">✓</span><span>Everyday object investigations</span>
+      </div>
+      <div class="objective ${state.observations.some(o => o.category === "Human activity") ? "done" : ""}">
+        <span class="tick">✓</span><span>Human behaviour assessments</span>
+      </div>
+      <p>Objectives completed: <strong>${objectives} / 4</strong></p>
+      <p>Reports on file: <strong>${count}</strong></p>
+      ${state.submitted
+        ? '<p style="color:var(--green)">Your initial report has already been transmitted.</p>'
+        : ""}
+    `;
+
+    $("submitReportBtn").disabled = state.submitted || count < 3;
+    $("submitReportBtn").textContent = state.submitted
+      ? "REPORT ALREADY TRANSMITTED"
+      : count < 3
+        ? "THREE OBSERVATIONS REQUIRED"
+        : "TRANSMIT FIELD REPORT";
+  }
+
+  $("submitReportBtn").addEventListener("click", () => {
+    if (state.submitted || state.observations.length < 3) return;
+
+    state.submitted = true;
+    saveState();
+    updateUI();
+    closeModal("reportModal");
+
+    if (!state.completed) {
+      state.completed = true;
+      saveState();
+
+      $("completionStats").textContent =
+        `${state.observations.length} observations have been safely archived. Operative T-01's personnel record has been updated.`;
+
+      setTimeout(() => openModal("completeModal"), 450);
+      speak("Report transmitted. I have been informed that this is a good result. I shall try not to let it affect me.", 10000);
+    } else {
+      showToast("Report successfully retransmitted. Headquarters is thrilled.");
+    }
+  });
+
+  // A little unscripted personality while the user is idle.
+  let idleTimer;
+  let idleCycle = 0;
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    if (!state.deployed) return;
+
+    idleTimer = setTimeout(() => {
+      if (!$("dialogue").classList.contains("visible") &&
+          !document.querySelector(".scrim.open")) {
+        idleCycle++;
+        if (idleCycle % 2 === 0) speak(randomLine("idle"), 6500);
+      }
+      resetIdleTimer();
+    }, 18000);
+  }
+
+  ["pointerdown", "touchstart", "keydown"].forEach(eventName => {
+    document.addEventListener(eventName, resetIdleTimer, { passive: true });
+  });
+
+  // Restore the operative's previous position and mission progress.
+  updateUI();
+
+  if (state.deployed) {
+    $("operative").classList.add("deployed");
+    speak("Operative T-01 is back on duty. I trust the world has behaved itself.", 7000);
+  }
+
+  // Briefing appears on first visit.
+  if (!localStorage.getItem("noel_briefing_seen_v1")) {
+    setTimeout(() => openModal("briefingModal"), 500);
+    localStorage.setItem("noel_briefing_seen_v1", "yes");
+  }
+
+})();
 </script>
-
 </body>
 </html>
