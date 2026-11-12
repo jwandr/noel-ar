@@ -573,7 +573,11 @@ async function startCamera() {
     await video.play();
 
     // Now initialise computer vision.
+    trackingInfo.textContent = "STEP 1: STARTING OPENCV";
+    console.log("Reached OpenCV initialisation");
     await loadComputerVision();
+    trackingInfo.textContent = "STEP 2: OPENCV READY";
+    console.log("OpenCV initialisation completed");
 
     processHeight = Math.round(
       processWidth *
