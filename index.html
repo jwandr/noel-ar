@@ -410,6 +410,74 @@ header {
 #winScreen { display: none; }
 #winScreen .big { font-size: 70px; margin-bottom: 15px; }
 </style>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1,
+               maximum-scale=1, viewport-fit=cover">
+
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #102f2b;
+  }
+
+  #game-screen {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background: #102f2b;
+  }
+
+  /* LAYER 1: Live camera */
+  #camera-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transform: none; /* Do not mirror the camera */
+  }
+
+  /* LAYER 2: Your transparent surround artwork */
+  #screen-surround {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* LAYER 3: Operative and interactive content */
+  #game-content {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  #game-content button,
+  #game-content input,
+  #game-content .interactive {
+    pointer-events: auto;
+  }
+
+  /* Logo on the opening screen */
+  #noel-logo {
+    display: block;
+    width: min(52vw, 220px);
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 20px;
+  }
+</style>
 </head>
 
 <body>
@@ -454,7 +522,7 @@ header {
   <button id="cameraToggle">CAMERA: ON</button>
 
   <section class="screen" id="startScreen">
-    <div class="logoEmoji">🔭 ✨</div>
+    <div class="logoEmoji">✨</div>
     <h1>N.O.E.L.</h1>
     <p><strong>The Great Emoji Hunt</strong></p>
     <p>Six rogue emojis have escaped into the world. Find them, aim carefully and capture them with your energy ball.</p>
