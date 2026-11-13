@@ -3,1347 +3,930 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#102f2b">
-<title>N.O.E.L. | Field Operative</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#081522">
+<title>N.O.E.L. — Emoji Hunt</title>
 
 <style>
 :root {
-  --green: #102f2b;
-  --green-light: #23483e;
-  --gold: #d2b27d;
-  --cream: #f5efdf;
-  --muted: #b9c5b9;
-  --panel: rgba(16,47,43,.94);
-  --border: rgba(210,178,125,.55);
+  --gold: #ffd36a;
+  --cyan: #69e6ed;
+  --dark: #081522;
+  --panel: rgba(5, 17, 29, .78);
 }
-
 * { box-sizing: border-box; }
-
 html, body {
   margin: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--green);
-  color: var(--cream);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--dark);
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
-
-button, input, textarea {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.hidden { display: none !important; }
-
-/* =================================================
-   MAIN GAME SCREEN AND LAYERS
-   ================================================= */
-
-#game-screen {
+button { font: inherit; }
+#camera {
   position: fixed;
-  inset: 0;
-  overflow: hidden;
-  background: #102f2b;
-  isolation: isolate;
-}
-
-#camera-video {
-  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 1;
-  transform: none;
-  background: #182923;
+  display: none;
+  transform: scaleX(-1);
+  opacity: .78;
 }
-
-/* YOUR TRANSPARENT SURROUND IMAGE */
-#screen-surround {
-  position: absolute;
+#cameraShade {
+  position: fixed;
   inset: 0;
+  background: linear-gradient(180deg, rgba(3,12,22,.6), transparent 35%, rgba(3,12,22,.65));
+  pointer-events: none;
+}
+#fallback {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 45%, #21475b 0%, #102b3e 35%, #081522 75%);
+}
+#fallback::before {
+  content: "✦      ·       ✧        ·       ✦";
+  position: absolute;
+  top: 18%;
+  width: 100%;
+  text-align: center;
+  color: rgba(255,255,255,.25);
+  letter-spacing: 18px;
+  font-size: 22px;
+}
+#app {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: fill;
-  pointer-events: none;
-  z-index: 10;
+  overflow: hidden;
 }
-
-/* All interactive game elements sit above the surround */
-#game-content {
+header {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: 15px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+.subbrand {
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: .7;
+  margin-top: 3px;
+}
+.counter {
+  border: 1px solid rgba(255,211,106,.5);
+  background: var(--panel);
+  border-radius: 20px;
+  padding: 8px 13px;
+  font-size: 13px;
+  font-weight: 700;
+}
+#collection {
+  position: absolute;
+  z-index: 5;
+  top: calc(env(safe-area-inset-top, 0px) + 65px);
+  left: 15px;
+  right: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.slot {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(5,17,29,.55);
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+  opacity: .4;
+  filter: grayscale(1);
+}
+.slot.found {
+  opacity: 1;
+  filter: none;
+  border-color: var(--gold);
+  background: rgba(255,211,106,.13);
+  box-shadow: 0 0 15px rgba(255,211,106,.18);
+}
+#status {
+  position: absolute;
+  z-index: 5;
+  top: 125px;
+  left: 15px;
+  right: 15px;
+  text-align: center;
+  pointer-events: none;
+}
+#statusMain {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px #000;
+}
+#statusSub {
+  font-size: 12px;
+  opacity: .85;
+  margin-top: 6px;
+  text-shadow: 0 2px 8px #000;
+}
+#target {
+  position: absolute;
+  z-index: 3;
+  display: none;
+  width: 104px;
+  height: 104px;
+  align-items: center;
+  justify-content: center;
+  font-size: 69px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(105,230,237,.22), rgba(105,230,237,.02) 68%);
+  filter: drop-shadow(0 0 14px rgba(105,230,237,.65));
+  animation: targetAppear .55s ease-out, targetFloat 2.5s ease-in-out infinite;
+  touch-action: none;
+  pointer-events: none;
+}
+#target::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 2px solid rgba(105,230,237,.8);
+  border-radius: 50%;
+  animation: ring 2s linear infinite;
+}
+#target::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border: 1px solid rgba(105,230,237,.3);
+  border-radius: 50%;
+}
+@keyframes targetAppear {
+  from { transform: scale(.1); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes targetFloat {
+  0%,100% { margin-top: 0; }
+  50% { margin-top: -8px; }
+}
+@keyframes ring {
+  from { transform: scale(.85); opacity: .8; }
+  to { transform: scale(1.3); opacity: 0; }
+}
+#target.captured {
+  animation: capture .55s ease-in forwards;
+}
+@keyframes capture {
+  to { transform: scale(.05); opacity: 0; filter: brightness(3); }
+}
+#launcherArea {
+  position: absolute;
+  z-index: 8;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  left: 0;
+  right: 0;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+#throwHint {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 13px;
+  text-shadow: 0 2px 8px #000;
+}
+#ballLauncher {
+  pointer-events: auto;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.8);
+  background:
+    radial-gradient(circle at 35% 28%, #fff8d9 0%, #ffe69a 13%, #e9a52c 45%, #a95d10 75%, #4b270e 100%);
+  box-shadow: 0 0 0 6px rgba(255,211,106,.13),
+              0 0 25px rgba(255,190,67,.55),
+              inset 0 -7px 12px rgba(0,0,0,.3);
+  position: relative;
+  touch-action: none;
+  cursor: grab;
+  display: none;
+}
+#ballLauncher::before {
+  content: "";
+  position: absolute;
+  height: 9px;
+  left: -1px;
+  right: -1px;
+  top: 31px;
+  background: #fff4d0;
+  border-top: 2px solid rgba(110,62,13,.5);
+  border-bottom: 2px solid rgba(110,62,13,.5);
+}
+#ballLauncher::after {
+  content: "";
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 3px solid #fff8dd;
+  background: #d48b20;
+  left: 26px;
+  top: 25px;
+  box-shadow: 0 0 7px rgba(255,255,255,.7);
+}
+#ballLauncher.ready {
+  animation: ballPulse 1.8s ease-in-out infinite;
+}
+@keyframes ballPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+#ballLauncher.dragging { animation: none; transform: scale(.92); }
+#aimCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#projectile {
+  position: absolute;
+  z-index: 9;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: none;
+  background: radial-gradient(circle at 35% 28%, #fff8d9, #ffc94d 35%, #bd7416 75%);
+  border: 2px solid white;
+  box-shadow: 0 0 18px 7px rgba(255,198,70,.45);
+  pointer-events: none;
+}
+#projectile::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+  height: 5px;
+  background: white;
+  border-top: 1px solid #a96c1c;
+  border-bottom: 1px solid #a96c1c;
+}
+#toast {
+  position: absolute;
+  z-index: 10;
+  top: 43%;
+  left: 10%;
+  right: 10%;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-shadow: 0 3px 15px #000;
+  opacity: 0;
+  transform: scale(.8);
+  pointer-events: none;
+}
+#toast.show { animation: toast 1.1s ease-out forwards; }
+@keyframes toast {
+  0% { opacity: 0; transform: scale(.8); }
+  20% { opacity: 1; transform: scale(1.08); }
+  70% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+.screen {
   position: absolute;
   inset: 0;
   z-index: 20;
-  pointer-events: none;
-}
-
-#game-content button,
-#game-content input,
-#game-content textarea,
-#game-content .interactive {
-  pointer-events: auto;
-}
-
-/* =================================================
-   OPENING SCREEN
-   ================================================= */
-
-#opening-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 24px;
-  background:
-    radial-gradient(ellipse at center, #23483e 0%, #102f2b 70%);
-}
-
-.opening-inner {
-  width: 100%;
-  max-width: 390px;
+  padding: 30px;
   text-align: center;
+  background: linear-gradient(160deg, rgba(6,19,31,.96), rgba(13,43,58,.94));
 }
-
-#noel-logo {
-  display: block;
-  width: min(55vw, 220px);
-  height: auto;
-  max-height: 220px;
-  object-fit: contain;
-  margin: 0 auto 26px;
-}
-
-.eyebrow {
-  color: var(--gold);
-  font-size: 11px;
-  font-weight: bold;
+.screen h1 {
+  font-size: 39px;
+  line-height: 1.05;
+  margin: 0;
   letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-.opening-inner h1 {
-  font-family: Georgia, serif;
-  font-size: clamp(27px, 7vw, 38px);
-  font-weight: normal;
-  letter-spacing: 2px;
-  margin: 10px 0 8px;
-}
-
-.opening-inner .subtitle {
-  color: var(--muted);
-  font-size: 13px;
-  letter-spacing: 1px;
-  margin-bottom: 34px;
-}
-
-.opening-copy {
-  color: var(--cream);
-  font-family: Georgia, serif;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0 auto 26px;
-}
-
-.field-label {
-  display: block;
-  text-align: left;
   color: var(--gold);
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
 }
-
-input, textarea {
-  width: 100%;
-  padding: 14px;
-  color: var(--cream);
-  background: rgba(255,255,255,.07);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  outline: none;
+.screen h2 {
+  font-size: 27px;
+  color: var(--gold);
+  margin: 0 0 12px;
 }
-
-input:focus, textarea:focus {
-  border-color: var(--gold);
-}
-
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-.primary-btn, .secondary-btn, .small-btn {
-  border: 1px solid var(--gold);
-  border-radius: 7px;
-  padding: 13px 17px;
-  font-weight: bold;
-  letter-spacing: .6px;
-}
-
-.primary-btn {
-  background: var(--gold);
-  color: var(--green);
-}
-
-.secondary-btn {
-  background: transparent;
-  color: var(--cream);
-}
-
-.small-btn {
-  padding: 10px 12px;
-  font-size: 11px;
-  background: rgba(16,47,43,.9);
-  color: var(--cream);
-}
-
-.full-width { width: 100%; }
-
-#case-error {
-  color: #f2b6a8;
-  font-size: 12px;
-  margin-top: 12px;
-  min-height: 18px;
-}
-
-.opening-foot {
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 1px;
-  margin-top: 32px;
-}
-
-/* =================================================
-   BRIEFING PANEL
-   ================================================= */
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 22px;
-  background: rgba(0,0,0,.72);
-}
-
-.modal {
-  width: 100%;
-  max-width: 420px;
-  max-height: 85dvh;
-  overflow-y: auto;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 15px 60px rgba(0,0,0,.45);
-}
-
-.modal h2 {
-  font-family: Georgia, serif;
-  font-weight: normal;
-  font-size: 25px;
-  margin: 8px 0 14px;
-}
-
-.modal p {
-  font-family: Georgia, serif;
+.screen p {
+  line-height: 1.55;
   font-size: 15px;
-  line-height: 1.65;
-  color: var(--cream);
+  max-width: 310px;
+  opacity: .88;
 }
-
-.modal .eyebrow { margin-bottom: 8px; }
-
-.modal-actions {
-  display: flex;
-  gap: 10px;
+.logoEmoji {
+  font-size: 60px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 15px rgba(255,211,106,.3));
+}
+.primary {
+  border: 0;
+  border-radius: 30px;
+  padding: 16px 30px;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #ffe59b, #e6a52e);
+  color: #1b1b1b;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-size: 14px;
+  box-shadow: 0 5px 25px rgba(255,190,67,.25);
+}
+.secondary {
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.08);
+  color: white;
+  border-radius: 25px;
+  padding: 12px 20px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.smallprint {
+  font-size: 11px !important;
+  opacity: .55 !important;
   margin-top: 22px;
 }
-
-.modal-actions button { flex: 1; }
-
-/* =================================================
-   GAME INTERFACE
-   ================================================= */
-
-#top-strip {
+#cameraToggle {
   position: absolute;
-  top: max(14px, env(safe-area-inset-top));
-  left: 18px;
-  right: 18px;
-  text-align: center;
-  color: var(--cream);
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-shadow: 0 2px 5px #000;
-}
-
-#mission-strip {
-  position: absolute;
-  top: max(44px, calc(env(safe-area-inset-top) + 30px));
-  left: 16px;
-  right: 16px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--cream);
-  text-shadow: 0 2px 5px #000;
-}
-
-#operative {
-  position: absolute;
-  left: 50%;
-  top: 47%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(66px, 19vw, 100px);
-  line-height: 1;
-  cursor: grab;
-  pointer-events: auto;
-  filter: drop-shadow(0 9px 7px rgba(0,0,0,.35));
-  animation: bob 3s ease-in-out infinite;
-  user-select: none;
-  touch-action: none;
-}
-
-#operative:active { cursor: grabbing; }
-
-@keyframes bob {
-  0%, 100% { margin-top: 0; }
-  50% { margin-top: -9px; }
-}
-
-#operative-label {
-  position: absolute;
-  left: 50%;
-  top: calc(47% + 64px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: white;
-  text-shadow: 0 2px 5px #000;
-  pointer-events: none;
-}
-
-#dialogue {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: calc(160px + env(safe-area-inset-bottom));
-  padding: 14px 17px;
-  background: rgba(16,47,43,.94);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  font-family: Georgia, serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--cream);
-  text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,.2);
-  pointer-events: auto;
-}
-
-#game-controls {
-  position: absolute;
-  left: 15px;
+  z-index: 6;
   right: 15px;
-  bottom: max(17px, env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-  pointer-events: auto;
-}
-
-#game-controls button {
-  min-height: 43px;
-  padding: 9px 4px;
-  border-radius: 6px;
-  border: 1px solid var(--gold);
-  background: rgba(16,47,43,.95);
-  color: var(--cream);
-  font-size: 10px;
-  font-weight: bold;
-  letter-spacing: .4px;
-}
-
-#game-controls button:active {
-  background: var(--gold);
-  color: var(--green);
-}
-
-#camera-toggle {
-  position: absolute;
-  right: 17px;
-  top: max(75px, calc(env(safe-area-inset-top) + 65px));
-  pointer-events: auto;
-}
-
-#progress {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  top: max(75px, calc(env(safe-area-inset-top) + 65px));
-  font-size: 10px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 185px);
+  display: none;
+  border: 1px solid rgba(255,255,255,.3);
+  background: var(--panel);
   color: white;
-  text-shadow: 0 2px 5px #000;
-  text-align: left;
+  border-radius: 18px;
+  padding: 8px 12px;
+  font-size: 11px;
 }
-
-/* =================================================
-   INVESTIGATION FORM
-   ================================================= */
-
-.category-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin: 12px 0 18px;
+#scanLine {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  height: 2px;
+  top: 20%;
+  display: none;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 15px var(--cyan);
+  animation: scan 2.1s linear infinite;
 }
-
-.category-option {
-  padding: 12px 7px;
-  text-align: center;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(210,178,125,.35);
-  border-radius: 7px;
-  color: var(--cream);
-  font-size: 12px;
+@keyframes scan {
+  from { top: 20%; }
+  to { top: 78%; }
 }
+#winScreen { display: none; }
+#winScreen .big { font-size: 70px; margin-bottom: 15px; }
+</style>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1,
+               maximum-scale=1, viewport-fit=cover">
 
-.category-option.selected {
-  background: var(--gold);
-  color: var(--green);
-  border-color: var(--gold);
-}
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #102f2b;
+  }
 
-/* =================================================
-   JOURNAL
-   ================================================= */
+  #game-screen {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    background: #102f2b;
+  }
 
-.journal-entry {
-  border-top: 1px solid var(--border);
-  padding: 14px 0;
-}
+  /* LAYER 1: Live camera */
+  #camera-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transform: none; /* Do not mirror the camera */
+  }
 
-.journal-entry h3 {
-  color: var(--gold);
-  font-size: 12px;
-  letter-spacing: 1px;
-  margin: 0 0 6px;
-}
+  /* LAYER 2: Your transparent surround artwork */
+  #screen-surround {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 10;
+  }
 
-.journal-entry p {
-  font-size: 13px;
-  margin: 5px 0;
-}
+  /* LAYER 3: Operative and interactive content */
+  #game-content {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
 
-/* =================================================
-   CAPTURE CELEBRATION
-   ================================================= */
+  #game-content button,
+  #game-content input,
+  #game-content .interactive {
+    pointer-events: auto;
+  }
 
-#capture-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 28px;
-  background:
-    radial-gradient(ellipse at center, #315b4b 0%, #102f2b 72%);
-}
-
-.capture-inner {
-  width: 100%;
-  max-width: 400px;
-}
-
-.capture-emoji {
-  font-size: 100px;
-  margin: 20px 0;
-  filter: drop-shadow(0 10px 10px rgba(0,0,0,.25));
-}
-
-.capture-key {
-  border: 1px dashed var(--gold);
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
-  background: rgba(255,255,255,.05);
-}
-
-.capture-key .key {
-  font-size: 42px;
-  margin-top: 8px;
-}
-
-.capture-inner h1 {
-  font-family: Georgia, serif;
-  font-size: 29px;
-  font-weight: normal;
-  color: var(--gold);
-}
-
-.capture-inner p {
-  font-family: Georgia, serif;
-  line-height: 1.6;
-}
-
-#capture-screen .primary-btn {
-  margin-top: 12px;
-}
-
-/* =================================================
-   RESPONSIVE ADJUSTMENTS
-   ================================================= */
-
-@media (max-height: 720px) {
-  #operative { top: 43%; }
-  #operative-label { top: calc(43% + 60px); }
-  #dialogue { bottom: calc(135px + env(safe-area-inset-bottom)); }
-}
-
+  /* Logo on the opening screen */
+  #noel-logo {
+    display: block;
+    width: min(52vw, 220px);
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 20px;
+  }
 </style>
 </head>
 
 <body>
+<div id="fallback"></div>
+<video id="camera" autoplay muted playsinline></video>
+<div id="cameraShade"></div>
 
-<!-- =================================================
-     OPENING SCREEN
-     ================================================= -->
-
-<div id="opening-screen">
-  <div class="opening-inner">
-
-    <!-- CHANGE THIS TO YOUR LOGO FILE -->
-    <img id="noel-logo" src="logo.png" alt="N.O.E.L. Logo"
-         onerror="this.style.display='none'">
-
-    <div class="eyebrow">National Office of Emoji Liaison</div>
-
-    <h1>FIELD OPERATIVE</h1>
-
-    <div class="subtitle">HUMAN OBSERVATION DIVISION</div>
-
-    <p class="opening-copy">
-      Welcome, field agent.<br>
-      Your assigned operative is standing by.
-      Headquarters has issued a new case file.
-    </p>
-
-    <label class="field-label" for="case-id">CASE FILE IDENTIFICATION</label>
-
-    <input id="case-id"
-           type="text"
-           placeholder="Enter your case file ID"
-           autocomplete="off"
-           autocapitalize="characters">
-
-    <button class="primary-btn full-width"
-            style="margin-top:14px"
-            id="launch-btn">
-      INITIATE FIELD OPERATION
-    </button>
-
-    <div id="case-error"></div>
-
-    <div class="opening-foot">
-      AUTHORISED PERSONNEL ONLY · N.O.E.L. INTERNAL SYSTEM
+<div id="app">
+  <header>
+    <div>
+      <div class="brand">N.O.E.L.</div>
+      <div class="subbrand">NATIONAL OFFICE OF EMOJI LIAISON</div>
     </div>
+    <div class="counter" id="counter">0 / 6</div>
+  </header>
 
+  <div id="collection">
+    <div class="slot" data-id="telescope">🔭</div>
+    <div class="slot" data-id="detective">🕵️</div>
+    <div class="slot" data-id="croissant">🥐</div>
+    <div class="slot" data-id="sloth">🦥</div>
+    <div class="slot" data-id="palette">🎨</div>
+    <div class="slot" data-id="train">🚂</div>
   </div>
-</div>
 
-
-<!-- =================================================
-     MAIN GAME SCREEN
-     ================================================= -->
-
-<div id="game-screen" class="hidden">
-
-  <!-- LAYER 1: LIVE CAMERA -->
-  <video id="camera-video"
-         autoplay
-         playsinline
-         muted></video>
-
-  <!-- LAYER 2: YOUR TRANSPARENT SURROUND IMAGE -->
-  <!-- Replace surround.png with your own filename if needed -->
-  <img id="screen-surround"
-       src="surround.png"
-       alt=""
-       onerror="this.style.display='none'">
-
-  <!-- LAYER 3: INTERACTIVE GAME CONTENT -->
-  <div id="game-content">
-
-    <div id="top-strip">
-      N.O.E.L. · FIELD OPERATIONS
-    </div>
-
-    <div id="mission-strip">
-      MISSION 001 · THE HUMAN WORLD
-    </div>
-
-    <div id="progress">
-      OBSERVATIONS FILED: <span id="observation-count">0</span> / 3
-    </div>
-
-    <button id="camera-toggle" class="small-btn">
-      CAMERA OFF
-    </button>
-
-    <div id="operative" class="interactive" title="Tap to speak">
-      🔭
-    </div>
-
-    <div id="operative-label">
-      OPERATIVE T-01
-    </div>
-
-    <div id="dialogue">
-      Operative T-01 standing by. Please provide instructions.
-    </div>
-
-    <div id="game-controls">
-      <button id="investigate-btn">INVESTIGATE</button>
-      <button id="journal-btn">FIELD JOURNAL</button>
-      <button id="report-btn">REPORT TO HQ</button>
-    </div>
-
+  <div id="status">
+    <div id="statusMain">READY TO SEARCH</div>
+    <div id="statusSub">Six elusive emojis are somewhere nearby...</div>
   </div>
-</div>
 
+  <div id="scanLine"></div>
+  <div id="target"></div>
+  <canvas id="aimCanvas"></canvas>
+  <div id="projectile"></div>
+  <div id="toast"></div>
 
-<!-- =================================================
-     MISSION BRIEFING
-     ================================================= -->
-
-<div id="briefing-screen" class="overlay hidden">
-  <div class="modal">
-
-    <div class="eyebrow">Incoming Assignment · Mission 001</div>
-
-    <h2>The Human World</h2>
-
-    <p>
-      Operative T-01, you are hereby assigned to Earth Observation.
-      Your task is to document the peculiar habits, objects and
-      environments encountered in human civilisation.
-    </p>
-
-    <p>
-      Please exercise discretion. Humans are notoriously
-      unpredictable, particularly before breakfast.
-    </p>
-
-    <div class="eyebrow">Mission Objectives</div>
-
-    <p>
-      01 · Observe something natural.<br>
-      02 · Investigate an everyday object.<br>
-      03 · Record an unusual human activity.<br>
-      04 · Submit your initial field report.
-    </p>
-
-    <div class="modal-actions">
-      <button class="primary-btn full-width" id="briefing-start">
-        ACCEPT ASSIGNMENT
-      </button>
-    </div>
-
+  <div id="launcherArea">
+    <div id="throwHint">SWIPE UP TO THROW</div>
+    <div id="ballLauncher"></div>
   </div>
+
+  <button id="cameraToggle">CAMERA: ON</button>
+
+  <section class="screen" id="startScreen">
+    <div class="logoEmoji">✨</div>
+    <h1>N.O.E.L.</h1>
+    <p><strong>The Great Emoji Hunt</strong></p>
+    <p>Six rogue emojis have escaped into the world. Find them, aim carefully and capture them with your energy ball.</p>
+    <button class="primary" id="startButton">START HUNT</button>
+    <button class="secondary" id="noCameraButton">PLAY WITHOUT CAMERA</button>
+    <p class="smallprint">Camera access is optional. Best played in a safe, open space.</p>
+  </section>
+
+  <section class="screen" id="winScreen">
+    <div class="big">🏆</div>
+    <h2>MISSION ACCOMPLISHED!</h2>
+    <p>All six emojis have been safely returned to N.O.E.L. Headquarters.</p>
+    <p>Outstanding work, Agent.</p>
+    <button class="primary" id="againButton">PLAY AGAIN</button>
+  </section>
 </div>
-
-
-<!-- =================================================
-     INVESTIGATION MODAL
-     ================================================= -->
-
-<div id="investigate-screen" class="overlay hidden">
-  <div class="modal">
-
-    <div class="eyebrow">Field Investigation</div>
-    <h2>What are we observing?</h2>
-
-    <p>
-      Select a category and describe the subject.
-      Headquarters expects a thorough account.
-    </p>
-
-    <div class="category-list">
-      <button class="category-option selected" data-category="Nature">🌿 Nature</button>
-      <button class="category-option" data-category="Everyday object">🪑 Everyday object</button>
-      <button class="category-option" data-category="Human activity">🧍 Human activity</button>
-      <button class="category-option" data-category="Architecture">🏛️ Architecture</button>
-      <button class="category-option" data-category="Animal">🐦 Animal</button>
-      <button class="category-option" data-category="Other">🔎 Other</button>
-    </div>
-
-    <label class="field-label" for="subject-input">SUBJECT</label>
-    <input id="subject-input"
-           type="text"
-           placeholder="e.g. A very suspicious-looking chair">
-
-    <label class="field-label" for="notes-input" style="margin-top:16px">
-      FIELD NOTES (OPTIONAL)
-    </label>
-
-    <textarea id="notes-input"
-              placeholder="Anything else the operative should know?"></textarea>
-
-    <div class="modal-actions">
-      <button class="secondary-btn" id="investigate-cancel">CANCEL</button>
-      <button class="primary-btn" id="investigate-submit">FILE OBSERVATION</button>
-    </div>
-
-  </div>
-</div>
-
-
-<!-- =================================================
-     JOURNAL MODAL
-     ================================================= -->
-
-<div id="journal-screen" class="overlay hidden">
-  <div class="modal">
-
-    <div class="eyebrow">N.O.E.L. Records Division</div>
-    <h2>Field Journal</h2>
-
-    <div id="journal-entries">
-      <p>No observations filed yet. One assumes you have only just arrived.</p>
-    </div>
-
-    <div class="modal-actions">
-      <button class="primary-btn full-width" id="journal-close">
-        RETURN TO FIELD
-      </button>
-    </div>
-
-  </div>
-</div>
-
-
-<!-- =================================================
-     CAPTURE CELEBRATION
-     ================================================= -->
-
-<div id="capture-screen" class="hidden">
-
-  <div class="capture-inner">
-
-    <div class="eyebrow">N.O.E.L. · Headquarters Notification</div>
-
-    <h1>CAPTURE CONFIRMED</h1>
-
-    <div class="capture-emoji" id="capture-emoji">🔭</div>
-
-    <p>
-      Mission successfully completed.<br>
-      Operative T-01 has returned with the required intelligence.
-    </p>
-
-    <div class="capture-key">
-      <div class="eyebrow">YOUR EMOJI KEY</div>
-      <div class="key" id="capture-key">🔭</div>
-      <p style="font-size:12px;margin-bottom:0">
-        Return to N.O.E.L. Headquarters and submit this emoji
-        to unlock the next phase.
-      </p>
-    </div>
-
-    <p id="capture-remark">
-      Well. That was considerably more straightforward than anticipated.
-      I shall try not to appear surprised.
-    </p>
-
-    <button class="primary-btn full-width" id="copy-key-btn">
-      COPY EMOJI KEY
-    </button>
-
-    <button class="secondary-btn full-width"
-            style="margin-top:10px"
-            id="return-hq-btn">
-      RETURN TO HEADQUARTERS
-    </button>
-
-  </div>
-</div>
-
 
 <script>
+(() => {
+  const $ = id => document.getElementById(id);
 
-/* =================================================
-   N.O.E.L. FIELD OPERATIVE
-   CONFIGURATION
-   ================================================= */
-
-// Your two image files are referenced in the HTML above.
-// Change the filenames there if you use different names.
-
-// Case file ID and assigned emoji.
-// Add further assignments here when you introduce new operatives.
-const ASSIGNMENTS = {
-  "NOEL-001-T": {
-    mission: "MISSION 001 · THE HUMAN WORLD",
-    emoji: "🔭",
-    operative: "OPERATIVE T-01",
-    name: "The Telescope",
-    title: "Human Observation",
-    requiredObservations: 3
-  }
-};
-
-const STORAGE_KEY = "noel_field_operative_v1";
-
-let currentAssignment = null;
-let selectedCategory = "Nature";
-let observations = [];
-let cameraStream = null;
-let cameraEnabled = false;
-let missionComplete = false;
-let selectedCaseId = "";
-
-
-/* =================================================
-   ELEMENT REFERENCES
-   ================================================= */
-
-const $ = id => document.getElementById(id);
-
-const openingScreen = $("opening-screen");
-const gameScreen = $("game-screen");
-const video = $("camera-video");
-const operative = $("operative");
-const dialogue = $("dialogue");
-
-
-/* =================================================
-   STORAGE
-   ================================================= */
-
-function saveProgress() {
-  const data = {
-    observations,
-    missionComplete,
-    selectedCaseId
-  };
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.warn("Progress could not be saved.", error);
-  }
-}
-
-function loadProgress() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-
-    const data = JSON.parse(saved);
-
-    if (data.selectedCaseId === selectedCaseId) {
-      observations = Array.isArray(data.observations)
-        ? data.observations : [];
-      missionComplete = Boolean(data.missionComplete);
-    }
-  } catch (error) {
-    console.warn("Saved progress could not be loaded.", error);
-  }
-}
-
-
-/* =================================================
-   CASE FILE LAUNCH
-   ================================================= */
-
-$("launch-btn").addEventListener("click", launchMission);
-
-$("case-id").addEventListener("keydown", event => {
-  if (event.key === "Enter") launchMission();
-});
-
-function launchMission() {
-  const caseId = $("case-id").value.trim().toUpperCase();
-
-  if (!caseId) {
-    $("case-error").textContent = "Please enter your case file identification.";
-    return;
-  }
-
-  if (!ASSIGNMENTS[caseId]) {
-    $("case-error").textContent =
-      "Case file not recognised. Please check your identification.";
-    return;
-  }
-
-  selectedCaseId = caseId;
-  currentAssignment = ASSIGNMENTS[caseId];
-
-  loadProgress();
-
-  $("mission-strip").textContent = currentAssignment.mission;
-  $("operative").textContent = currentAssignment.emoji;
-  $("operative-label").textContent = currentAssignment.operative;
-
-  $("capture-emoji").textContent = currentAssignment.emoji;
-  $("capture-key").textContent = currentAssignment.emoji;
-
-  openingScreen.classList.add("hidden");
-  gameScreen.classList.remove("hidden");
-
-  updateProgress();
-
-  if (missionComplete) {
-    showCaptureScreen();
-    return;
-  }
-
-  $("briefing-screen").classList.remove("hidden");
-}
-
-
-/* =================================================
-   MISSION BRIEFING
-   ================================================= */
-
-$("briefing-start").addEventListener("click", () => {
-  $("briefing-screen").classList.add("hidden");
-
-  setDialogue(
-    "Excellent. We are officially operational. I have prepared a list of things to look at. It is, admittedly, rather short."
-  );
-
-  startCamera();
-});
-
-
-/* =================================================
-   DIALOGUE SYSTEM
-   ================================================= */
-
-function setDialogue(message) {
-  dialogue.textContent = message;
-}
-
-const operativeLines = [
-  "Ah. You're here. Excellent. I was beginning to suspect I'd been abandoned.",
-  "I have been observing this location for some time. It remains largely unchanged.",
-  "Yes, yes. I am aware of your presence.",
-  "An intriguing development. I shall exaggerate its importance in my report.",
-  "I have requested a chair of my own. Headquarters has declined on the grounds that I am equipment.",
-  "The situation remains under observation. As do you, incidentally.",
-  "I feel we are making progress. It is difficult to say precisely where.",
-  "I have seen things today. Some of them were quite ordinary.",
-  "Please continue. I am making a note of your enthusiasm.",
-  "A fascinating specimen of human behaviour. Almost certainly deliberate."
-];
-
-$("operative").addEventListener("click", () => {
-  const line = operativeLines[
-    Math.floor(Math.random() * operativeLines.length)
+  const characters = [
+    {id:"telescope", emoji:"🔭", name:"Telescope"},
+    {id:"detective", emoji:"🕵️", name:"Detective"},
+    {id:"croissant", emoji:"🥐", name:"Croissant"},
+    {id:"sloth", emoji:"🦥", name:"Sloth"},
+    {id:"palette", emoji:"🎨", name:"Palette"},
+    {id:"train", emoji:"🚂", name:"Train"}
   ];
-  setDialogue(line);
-});
 
+  let found = [];
+  let current = null;
+  let phase = "start";
+  let cameraStream = null;
+  let audioContext = null;
+  let pointerStart = null;
+  let isDragging = false;
+  let scanTimer = null;
+  let gameToken = 0;
 
-/* =================================================
-   OPERATIVE POSITIONING
-   Drag the operative around the screen.
-   ================================================= */
+  const video = $("camera");
+  const target = $("target");
+  const ball = $("ballLauncher");
+  const projectile = $("projectile");
+  const canvas = $("aimCanvas");
+  const ctx = canvas.getContext("2d");
 
-let dragActive = false;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-
-operative.addEventListener("pointerdown", event => {
-  dragActive = true;
-  const rect = operative.getBoundingClientRect();
-
-  dragOffsetX = event.clientX - (rect.left + rect.width / 2);
-  dragOffsetY = event.clientY - (rect.top + rect.height / 2);
-
-  operative.setPointerCapture(event.pointerId);
-});
-
-operative.addEventListener("pointermove", event => {
-  if (!dragActive) return;
-
-  const x = event.clientX - dragOffsetX;
-  const y = event.clientY - dragOffsetY;
-
-  const maxX = window.innerWidth - 50;
-  const maxY = window.innerHeight - 90;
-
-  const safeX = Math.max(50, Math.min(maxX, x));
-  const safeY = Math.max(100, Math.min(maxY, y));
-
-  operative.style.left = safeX + "px";
-  operative.style.top = safeY + "px";
-  operative.style.transform = "translate(-50%, -50%)";
-
-  $("operative-label").style.left = safeX + "px";
-  $("operative-label").style.top = (safeY + 65) + "px";
-});
-
-function stopDragging() {
-  dragActive = false;
-}
-
-operative.addEventListener("pointerup", stopDragging);
-operative.addEventListener("pointercancel", stopDragging);
-
-
-/* =================================================
-   CAMERA
-   ================================================= */
-
-async function startCamera() {
-  if (!navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia) {
-    setDialogue(
-      "The camera system is unavailable. I suggest you investigate the browser's technical incompetence."
-    );
-    return;
+  function sound(frequency=440, duration=.12, type="sine") {
+    try {
+      audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === "suspended") audioContext.resume();
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.type = type;
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(.12, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.start();
+      osc.stop(audioContext.currentTime + duration);
+    } catch(e) {}
   }
 
-  // Reuse an existing active stream where possible.
-  if (cameraStream &&
-      cameraStream.getVideoTracks().some(track => track.readyState === "live")) {
-    video.srcObject = cameraStream;
-    cameraEnabled = true;
-    updateCameraButton();
-    return;
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  async function enableCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      $("fallback").style.display = "block";
+      return false;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false
+      });
+      video.srcObject = cameraStream;
+      video.style.display = "block";
+      $("fallback").style.display = "none";
+      $("cameraToggle").textContent = "CAMERA: ON";
+      $("cameraToggle").style.display = "block";
+      await video.play().catch(() => {});
+      return true;
+    } catch(e) {
+      video.style.display = "none";
+      $("fallback").style.display = "block";
+      return false;
+    }
   }
 
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: "environment" },
-        width: { ideal: 1080 },
-        height: { ideal: 1920 }
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    video.srcObject = null;
+    video.style.display = "none";
+    $("fallback").style.display = "block";
+    $("cameraToggle").style.display = "none";
+  }
+
+  $("cameraToggle").addEventListener("click", () => {
+    if (cameraStream) {
+      stopCamera();
+    } else {
+      enableCamera();
+    }
+  });
+
+  function updateCollection() {
+    $("counter").textContent = found.length + " / 6";
+    document.querySelectorAll(".slot").forEach(slot => {
+      slot.classList.toggle("found", found.includes(slot.dataset.id));
+    });
+  }
+
+  function status(main, sub) {
+    $("statusMain").textContent = main;
+    $("statusSub").textContent = sub;
+  }
+
+  function showToast(message) {
+    const toast = $("toast");
+    toast.textContent = message;
+    toast.classList.remove("show");
+    void toast.offsetWidth;
+    toast.classList.add("show");
+  }
+
+  function setBallVisible(visible) {
+    ball.style.display = visible ? "block" : "none";
+    ball.classList.toggle("ready", visible);
+    $("throwHint").style.display = visible ? "block" : "none";
+  }
+
+  function startGame(withCamera) {
+    gameToken++;
+    clearTimeout(scanTimer);
+    found = [];
+    current = null;
+    phase = "scanning";
+    updateCollection();
+    $("startScreen").style.display = "none";
+    $("winScreen").style.display = "none";
+    target.style.display = "none";
+    $("scanLine").style.display = "block";
+    setBallVisible(false);
+    if (withCamera) enableCamera();
+    else stopCamera();
+    status("SCANNING ENVIRONMENT", "Looking for an escaped emoji...");
+    scanForTarget(gameToken);
+  }
+
+  function scanForTarget(token) {
+    if (token !== gameToken || phase === "won") return;
+    if (found.length >= 6) {
+      winGame();
+      return;
+    }
+
+    phase = "scanning";
+    target.style.display = "none";
+    setBallVisible(false);
+    $("scanLine").style.display = "block";
+    status("SCANNING ENVIRONMENT", "Something may be lurking nearby...");
+    sound(330, .08);
+
+    const delay = 3000 + Math.random() * 3500;
+    scanTimer = setTimeout(() => {
+      if (token !== gameToken || phase === "won") return;
+      revealTarget();
+    }, delay);
+  }
+
+  function revealTarget() {
+    const remaining = characters.filter(c => !found.includes(c.id));
+    if (!remaining.length) return winGame();
+
+    current = remaining[Math.floor(Math.random() * remaining.length)];
+    phase = "target";
+    $("scanLine").style.display = "none";
+
+    const marginX = 75;
+    const minY = Math.max(190, window.innerHeight * .25);
+    const maxY = Math.min(window.innerHeight - 260, window.innerHeight * .65);
+    const x = marginX + Math.random() * (window.innerWidth - marginX * 2);
+    const y = minY + Math.random() * Math.max(10, maxY - minY);
+
+    target.style.left = (x - 52) + "px";
+    target.style.top = (y - 52) + "px";
+    target.textContent = current.emoji;
+    target.classList.remove("captured");
+    target.style.display = "flex";
+
+    setBallVisible(true);
+    status("TARGET DETECTED!", "Swipe the golden ball towards the " + current.name + ".");
+    showToast("TARGET SPOTTED!");
+    sound(620, .13);
+    setTimeout(() => sound(880, .12), 120);
+  }
+
+  function winGame() {
+    phase = "won";
+    clearTimeout(scanTimer);
+    target.style.display = "none";
+    setBallVisible(false);
+    $("scanLine").style.display = "none";
+    $("winScreen").style.display = "flex";
+    status("ALL TARGETS CAPTURED", "N.O.E.L. thanks you for your service.");
+    sound(660, .2);
+    setTimeout(() => sound(830, .2), 180);
+    setTimeout(() => sound(990, .35), 360);
+  }
+
+  function getBallCentre() {
+    const r = ball.getBoundingClientRect();
+    return {x:r.left + r.width/2, y:r.top + r.height/2};
+  }
+
+  function drawAim(x1, y1, x2, y2) {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const dx = x2-x1, dy = y2-y1;
+    const length = Math.hypot(dx,dy);
+    if (length < 5) return;
+    const angle = Math.atan2(dy,dx);
+    const endX = x1 + dx * 1.5;
+    const endY = y1 + dy * 1.5;
+
+    ctx.save();
+    ctx.setLineDash([7,9]);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(255,211,106,.85)";
+    ctx.shadowColor = "#ffd36a";
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(endX,endY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function clearAim() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+
+  ball.addEventListener("pointerdown", event => {
+    if (phase !== "target" || isDragging) return;
+    event.preventDefault();
+    isDragging = true;
+    pointerStart = getBallCentre();
+    ball.classList.add("dragging");
+    ball.setPointerCapture(event.pointerId);
+    drawAim(pointerStart.x, pointerStart.y, event.clientX, event.clientY);
+  });
+
+  ball.addEventListener("pointermove", event => {
+    if (!isDragging || !pointerStart) return;
+    event.preventDefault();
+    drawAim(pointerStart.x, pointerStart.y, event.clientX, event.clientY);
+  });
+
+  ball.addEventListener("pointerup", event => {
+    if (!isDragging || !pointerStart) return;
+    event.preventDefault();
+    const end = {x:event.clientX, y:event.clientY};
+    isDragging = false;
+    ball.classList.remove("dragging");
+    clearAim();
+
+    const dx = end.x - pointerStart.x;
+    const dy = end.y - pointerStart.y;
+    const distance = Math.hypot(dx,dy);
+
+    if (distance < 35) {
+      showToast("SWIPE TO THROW!");
+      return;
+    }
+    if (dy > -15) {
+      showToast("AIM UPWARDS!");
+      sound(180,.1);
+      return;
+    }
+
+    throwBall(pointerStart, end);
+  });
+
+  ball.addEventListener("pointercancel", () => {
+    isDragging = false;
+    pointerStart = null;
+    ball.classList.remove("dragging");
+    clearAim();
+  });
+
+  function throwBall(start, end) {
+    if (phase !== "target" || !current) return;
+    phase = "throwing";
+    setBallVisible(false);
+    sound(260,.1,"triangle");
+
+    const targetRect = target.getBoundingClientRect();
+    const tx = targetRect.left + targetRect.width/2;
+    const ty = targetRect.top + targetRect.height/2;
+
+    const vx = end.x - start.x;
+    const vy = end.y - start.y;
+    const swipeLength = Math.hypot(vx,vy);
+    const ux = vx/swipeLength;
+    const uy = vy/swipeLength;
+
+    // Extend the swipe direction into a forgiving projectile path.
+    const travel = Math.max(220, Math.min(850, swipeLength * 2.8));
+    const finish = {
+      x: start.x + ux * travel,
+      y: start.y + uy * travel
+    };
+
+    const px = tx - start.x;
+    const py = ty - start.y;
+    const projection = px*ux + py*uy;
+    const closestX = start.x + ux * projection;
+    const closestY = start.y + uy * projection;
+    const missDistance = Math.hypot(tx-closestX, ty-closestY);
+
+    const withinPath = projection > 20 && projection < travel + 45;
+    const hit = withinPath && missDistance < 67;
+
+    const destination = hit ? {x:tx,y:ty} : finish;
+    animateProjectile(start, destination, hit);
+  }
+
+  function animateProjectile(start, finish, hit) {
+    const duration = hit ? 430 : 560;
+    const started = performance.now();
+    projectile.style.display = "block";
+
+    function frame(now) {
+      const t = Math.min(1,(now-started)/duration);
+      const eased = 1 - Math.pow(1-t,3);
+      const x = start.x + (finish.x-start.x)*eased;
+      const y = start.y + (finish.y-start.y)*eased - Math.sin(t*Math.PI)*75;
+      const scale = 1 - .45*t;
+
+      projectile.style.left = (x-17) + "px";
+      projectile.style.top = (y-17) + "px";
+      projectile.style.transform = "scale(" + scale + ") rotate(" + (t*720) + "deg)";
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        projectile.style.display = "none";
+        if (hit) captureTarget();
+        else missTarget();
       }
-    });
-
-    video.srcObject = cameraStream;
-    await video.play();
-
-    cameraEnabled = true;
-    updateCameraButton();
-
-  } catch (error) {
-    cameraEnabled = false;
-    updateCameraButton();
-
-    setDialogue(
-      "Camera access has been declined or is unavailable. I shall proceed with a mental image of the surroundings."
-    );
-
-    console.warn("Camera error:", error);
-  }
-}
-
-function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
+    }
+    requestAnimationFrame(frame);
   }
 
-  video.srcObject = null;
-  cameraEnabled = false;
-  updateCameraButton();
-}
+  function captureTarget() {
+    if (phase !== "throwing" || !current) return;
+    phase = "captured";
+    target.classList.add("captured");
+    sound(520,.13,"sine");
+    setTimeout(() => sound(780,.18,"sine"),100);
+    setTimeout(() => sound(1040,.25,"sine"),220);
+    showToast("CAPTURED!");
+    found.push(current.id);
+    updateCollection();
 
-function updateCameraButton() {
-  $("camera-toggle").textContent =
-    cameraEnabled ? "CAMERA OFF" : "CAMERA ON";
-}
-
-$("camera-toggle").addEventListener("click", () => {
-  if (cameraEnabled) {
-    stopCamera();
-    setDialogue("Camera disabled. I shall have to rely on my powers of imagination.");
-  } else {
-    startCamera();
+    status("TARGET CAPTURED!", current.name + " has joined the collection.");
+    setTimeout(() => {
+      if (found.length >= 6) winGame();
+      else scanForTarget(gameToken);
+    }, 1100);
   }
-});
 
-// iOS may suspend the camera when Safari is backgrounded.
-// Attempt to restart the stream when the page becomes visible again.
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" &&
-      !gameScreen.classList.contains("hidden") &&
-      !openingScreen.classList.contains("hidden") === false &&
-      !missionComplete &&
-      !cameraEnabled) {
-    startCamera();
+  function missTarget() {
+    if (phase !== "throwing") return;
+    phase = "target";
+    setBallVisible(true);
+    status("MISSED!", "Have another go — swipe towards the emoji.");
+    showToast("MISSED! TRY AGAIN");
+    sound(180,.18,"triangle");
   }
-});
 
-window.addEventListener("pageshow", () => {
-  if (!gameScreen.classList.contains("hidden") &&
-      !missionComplete &&
-      !cameraEnabled) {
-    startCamera();
-  }
-});
+  $("startButton").addEventListener("click", () => startGame(true));
+  $("noCameraButton").addEventListener("click", () => startGame(false));
+  $("againButton").addEventListener("click", () => startGame(!!cameraStream));
 
-
-/* =================================================
-   INVESTIGATION
-   ================================================= */
-
-$("investigate-btn").addEventListener("click", () => {
-  if (missionComplete) return;
-
-  $("subject-input").value = "";
-  $("notes-input").value = "";
-  selectedCategory = "Nature";
-
-  document.querySelectorAll(".category-option").forEach(button => {
-    button.classList.toggle(
-      "selected",
-      button.dataset.category === selectedCategory
-    );
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && phase === "target") {
+      // Keep the game ready if Safari briefly switches away.
+    }
   });
-
-  $("investigate-screen").classList.remove("hidden");
-});
-
-document.querySelectorAll(".category-option").forEach(button => {
-  button.addEventListener("click", () => {
-    selectedCategory = button.dataset.category;
-
-    document.querySelectorAll(".category-option").forEach(option => {
-      option.classList.remove("selected");
-    });
-
-    button.classList.add("selected");
-  });
-});
-
-$("investigate-cancel").addEventListener("click", () => {
-  $("investigate-screen").classList.add("hidden");
-});
-
-$("investigate-submit").addEventListener("click", () => {
-  const subject = $("subject-input").value.trim();
-  const notes = $("notes-input").value.trim();
-
-  if (!subject) {
-    $("subject-input").focus();
-    return;
-  }
-
-  const assessment = createAssessment(
-    selectedCategory,
-    subject
-  );
-
-  const observation = {
-    category: selectedCategory,
-    subject,
-    notes,
-    assessment,
-    date: new Date().toLocaleString()
-  };
-
-  observations.push(observation);
-
-  saveProgress();
-  updateProgress();
-
-  $("investigate-screen").classList.add("hidden");
-
-  setDialogue(assessment);
-});
-
-function createAssessment(category, subject) {
-  const lower = subject.toLowerCase();
-
-  const assessments = {
-    "Nature": [
-      `Nature. A rather ambitious undertaking by the planet. I shall record this as evidence of competent design.`,
-      `An interesting natural specimen. It appears to have been here longer than most human institutions.`,
-      `Nature continues to operate without any visible management structure. Remarkable.`
-    ],
-
-    "Everyday object": [
-      `A ${lower}. An ingenious device. Humanity may yet have potential.`,
-      `I have examined the ${lower}. Its purpose appears straightforward, which is unusual for human technology.`,
-      `The ${lower} has been noted. I remain unconvinced that it requires so much attention.`
-    ],
-
-    "Human activity": [
-      `Humans are engaged in ${lower}. I have observed similar behaviour before, although rarely with such confidence.`,
-      `An intriguing display of human activity. I shall avoid making eye contact.`,
-      `The humans appear occupied with ${lower}. I have elected not to interfere.`
-    ],
-
-    "Architecture": [
-      `A structure of considerable ambition. One assumes there was a committee.`,
-      `The building has been recorded. It appears designed to keep the weather outside, which is sensible.`,
-      `An impressive feat of construction. I have requested similar facilities for headquarters.`
-    ],
-
-    "Animal": [
-      `An animal. It appears to be operating independently of human instruction. How refreshing.`,
-      `Wildlife observation complete. The subject seemed entirely unconcerned by my presence.`,
-      `An intriguing creature. I suspect it knows more than it is letting on.`
-    ],
-
-    "Other": [
-      `An unusual subject. I shall record it under the broad administrative category of 'things'.`,
-      `Further investigation is required. I am not prepared to admit that I have no idea what this is.`,
-      `A curious discovery. I shall attach considerable importance to it in the final report.`
-    ]
-  };
-
-  const options = assessments[category] || assessments["Other"];
-
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-
-/* =================================================
-   PROGRESS
-   ================================================= */
-
-function updateProgress() {
-  $("observation-count").textContent = observations.length;
-}
-
-
-/* =================================================
-   FIELD JOURNAL
-   ================================================= */
-
-$("journal-btn").addEventListener("click", openJournal);
-
-$("journal-close").addEventListener("click", () => {
-  $("journal-screen").classList.add("hidden");
-});
-
-function openJournal() {
-  const container = $("journal-entries");
-
-  if (observations.length === 0) {
-    container.innerHTML =
-      "<p>No observations filed yet. One assumes you have only just arrived.</p>";
-  } else {
-    container.innerHTML = observations.map((item, index) => `
-      <div class="journal-entry">
-        <h3>OBSERVATION ${String(index + 1).padStart(3, "0")} · ${escapeHTML(item.category.toUpperCase())}</h3>
-        <p><strong>${escapeHTML(item.subject)}</strong></p>
-        <p>${escapeHTML(item.assessment)}</p>
-        ${item.notes ? `<p><em>Field notes: ${escapeHTML(item.notes)}</em></p>` : ""}
-        <p style="font-size:10px;color:#b9c5b9">${escapeHTML(item.date)}</p>
-      </div>
-    `).join("");
-  }
-
-  $("journal-screen").classList.remove("hidden");
-}
-
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
-}
-
-
-/* =================================================
-   REPORT TO HEADQUARTERS
-   ================================================= */
-
-$("report-btn").addEventListener("click", () => {
-  if (missionComplete) {
-    showCaptureScreen();
-    return;
-  }
-
-  const required = currentAssignment.requiredObservations;
-
-  if (observations.length < required) {
-    setDialogue(
-      `Headquarters requires at least ${required} observations before your report can be submitted. We have ${observations.length}. I suggest we get on with it.`
-    );
-    return;
-  }
-
-  const confirmed = window.confirm(
-    "Submit your initial field report to N.O.E.L. Headquarters?"
-  );
-
-  if (!confirmed) return;
-
-  missionComplete = true;
-  saveProgress();
-
-  setDialogue(
-    "A thoroughly satisfactory result. I expect recognition shortly."
-  );
-
-  setTimeout(showCaptureScreen, 900);
-});
-
-
-/* =================================================
-   CAPTURE CELEBRATION
-   ================================================= */
-
-function showCaptureScreen() {
-  stopCamera();
-  $("capture-screen").classList.remove("hidden");
-}
-
-$("copy-key-btn").addEventListener("click", async () => {
-  const key = currentAssignment.emoji;
-
-  try {
-    await navigator.clipboard.writeText(key);
-    $("copy-key-btn").textContent = "KEY COPIED";
-  } catch (error) {
-    $("capture-key").textContent = key;
-    $("copy-key-btn").textContent = "COPY UNAVAILABLE — USE KEY ABOVE";
-  }
-});
-
-$("return-hq-btn").addEventListener("click", () => {
-  stopCamera();
-  $("capture-screen").classList.add("hidden");
-  gameScreen.classList.add("hidden");
-  openingScreen.classList.remove("hidden");
-  $("case-id").value = "";
-  $("case-error").textContent = "";
-});
-
-
-/* =================================================
-   INITIALISATION
-   ================================================= */
-
-updateCameraButton();
-
+})();
 </script>
-
 </body>
 </html>
