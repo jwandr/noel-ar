@@ -4,46 +4,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#101a20">
-<title>N.O.E.L. — Field Operative</title>
+<meta name="theme-color" content="#10151e">
+<title>N.O.E.L. — Emoji Hunt</title>
 
 <style>
 :root {
-  --ink: #edf0e8;
-  --muted: #aab5b1;
-  --gold: #d8b66b;
-  --gold-light: #f0d99d;
-  --panel: rgba(13, 24, 29, .91);
-  --line: rgba(231, 218, 180, .22);
-  --green: #9db7a2;
-  --red: #d98e7c;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --gold: #f5ca70;
+  --gold2: #ffe6a3;
+  --blue: #72d9ef;
+  --ink: #f6f4ee;
+  --muted: #aab2c0;
+  --dark: #10151e;
+  --panel: rgba(15, 21, 31, .91);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
 html, body {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #101a20;
+  background: var(--dark);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  user-select: none;
 }
 
-button, input, textarea { font: inherit; }
-button { cursor: pointer; }
+button {
+  font: inherit;
+  cursor: pointer;
+}
 
-#app {
+#game {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 100%;
+  height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 35%, #34464a 0%, #1b2a30 48%, #101a20 100%);
+    radial-gradient(ellipse at 50% 40%, #30404b 0%, #1b2935 48%, #10151e 100%);
+  isolation: isolate;
 }
 
 #camera {
@@ -53,851 +57,701 @@ button { cursor: pointer; }
   height: 100%;
   object-fit: cover;
   display: none;
-  background: #101a20;
+  z-index: -3;
 }
 
-.camera-shade {
+.camera-overlay {
   position: absolute;
   inset: 0;
+  z-index: -2;
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(5, 12, 16, .62) 0%,
-    transparent 27%,
-    transparent 65%,
-    rgba(5, 12, 16, .72) 100%
+    rgba(7, 12, 19, .58) 0%,
+    rgba(7, 12, 19, .12) 35%,
+    rgba(7, 12, 19, .16) 62%,
+    rgba(7, 12, 19, .82) 100%
   );
 }
 
-#ambient {
+.ambient {
   position: absolute;
   inset: 0;
+  z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 48%, transparent 20%, rgba(0,0,0,.28) 100%);
+    radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,.32) 100%);
 }
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Common elements */
 
 .topbar {
   position: absolute;
-  z-index: 5;
-  top: calc(12px + var(--safe-top));
-  left: 16px;
-  right: 16px;
+  z-index: 10;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 17px;
+  right: 17px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.logo {
+  color: var(--gold2);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .2em;
   text-shadow: 0 2px 8px #000;
 }
 
-.brand strong {
-  font-size: 13px;
-  letter-spacing: .19em;
-  color: var(--gold-light);
-}
-
-.brand span {
-  font-size: 9px;
-  letter-spacing: .17em;
-  color: rgba(255,255,255,.75);
-}
-
-.status {
-  padding: 8px 11px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: rgba(8, 16, 19, .6);
-  color: var(--gold-light);
-  font-size: 9px;
-  letter-spacing: .13em;
-  white-space: nowrap;
-}
-
-.status::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 7px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  vertical-align: 1px;
-}
-
-.mission-strip {
-  position: absolute;
-  z-index: 4;
-  top: calc(67px + var(--safe-top));
-  left: 16px;
-  right: 16px;
-  padding: 11px 13px;
-  border-left: 2px solid var(--gold);
-  background: rgba(8, 16, 19, .56);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.mission-strip .eyebrow {
-  color: var(--gold);
-  font-size: 9px;
-  letter-spacing: .18em;
-  margin-bottom: 4px;
-}
-
-.mission-strip .mission-name {
-  font-family: Georgia, serif;
-  font-size: 17px;
-}
-
-.mission-strip .mission-sub {
-  color: var(--muted);
-  font-size: 10px;
+.logo small {
+  display: block;
+  color: rgba(255,255,255,.72);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: .16em;
   margin-top: 3px;
 }
 
-#sceneHint {
-  position: absolute;
-  z-index: 2;
-  left: 20px;
-  right: 20px;
-  top: 43%;
-  text-align: center;
-  color: rgba(255,255,255,.7);
+.round-counter {
+  padding: 8px 11px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 30px;
+  background: rgba(8,13,20,.6);
+  color: var(--gold2);
   font-size: 11px;
-  letter-spacing: .12em;
-  text-shadow: 0 2px 6px #000;
-  pointer-events: none;
+  letter-spacing: .08em;
+  backdrop-filter: blur(8px);
 }
 
-#operative {
+.collection {
   position: absolute;
-  z-index: 3;
-  left: 50%;
-  top: 54%;
-  width: 130px;
-  height: 150px;
-  transform: translate(-50%, -50%);
-  display: none;
-  touch-action: none;
-  user-select: none;
-  cursor: grab;
-  filter: drop-shadow(0 9px 9px rgba(0,0,0,.45));
+  z-index: 8;
+  top: calc(72px + env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 7px;
 }
 
-#operative.deployed { display: block; }
-
-.character {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.collect-slot {
+  height: 51px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  animation: hover 3.6s ease-in-out infinite;
+  border: 1px solid rgba(255,255,255,.19);
+  border-radius: 8px;
+  background: rgba(9,16,24,.66);
+  backdrop-filter: blur(8px);
+  transition: .3s;
 }
 
-.telescope {
-  position: relative;
-  font-size: 83px;
-  line-height: 1;
-  filter: drop-shadow(0 3px 2px rgba(0,0,0,.35));
-  transform: rotate(-8deg);
+.collect-slot .emoji {
+  font-size: 22px;
+  filter: grayscale(1);
+  opacity: .28;
 }
 
-.operative-eye {
-  position: absolute;
-  top: 36px;
-  left: 76px;
-  width: 12px;
-  height: 12px;
-  border: 2px solid #182126;
-  border-radius: 50%;
-  background: #f4dfaa;
-  box-shadow: 0 0 0 2px rgba(240,217,157,.55);
-  z-index: 2;
-  transition: transform .2s ease;
+.collect-slot .number {
+  color: rgba(255,255,255,.4);
+  font-size: 7px;
+  margin-top: 1px;
 }
 
-.operative-eye::after {
-  content: "";
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  top: 2px;
-  left: 3px;
-  border-radius: 50%;
-  background: #182126;
+.collect-slot.found {
+  border-color: rgba(245,202,112,.7);
+  background: rgba(80,65,36,.65);
+  box-shadow: 0 0 13px rgba(245,202,112,.18);
 }
 
-.character-label {
-  margin-top: 3px;
-  padding: 4px 8px;
-  border: 1px solid rgba(240,217,157,.5);
-  border-radius: 3px;
-  background: rgba(9,17,21,.82);
-  color: var(--gold-light);
-  font-size: 8px;
-  letter-spacing: .16em;
-  white-space: nowrap;
+.collect-slot.found .emoji {
+  filter: none;
+  opacity: 1;
+  animation: pop .4s ease;
 }
 
-.character-shadow {
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  width: 52px;
-  height: 9px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.4);
-  filter: blur(5px);
-  transform: translateX(-50%);
-  animation: shadow 3.6s ease-in-out infinite;
+.collect-slot.found .number {
+  color: var(--gold2);
 }
 
-@keyframes hover {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-9px) rotate(1deg); }
-}
-@keyframes shadow {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: .6; }
-  50% { transform: translateX(-50%) scale(.78); opacity: .35; }
-}
-@keyframes blink {
-  0%, 92%, 100% { transform: scaleY(1); }
-  95% { transform: scaleY(.08); }
-}
-@keyframes arrival {
-  0% { opacity: 0; transform: translate(-50%, -30%) scale(.5); }
-  65% { opacity: 1; transform: translate(-50%, -56%) scale(1.08); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+@keyframes pop {
+  0% { transform: scale(.5); }
+  75% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
-#operative.arriving .character { animation: arrival .7s ease-out; }
-#operative.blinking .operative-eye { animation: blink .45s ease; }
-#operative.dragging { cursor: grabbing; }
-#operative.dragging .character { animation: none; }
+/* Start screen */
 
-.dialogue {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: calc(175px + var(--safe-bottom));
-  width: min(88%, 420px);
-  transform: translateX(-50%);
-  padding: 13px 15px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: rgba(9, 18, 22, .88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 25px rgba(0,0,0,.2);
+#startScreen {
+  z-index: 20;
   display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 24px;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(57,79,91,.8), transparent 65%);
 }
 
-.dialogue.visible { display: block; animation: fadeUp .25s ease-out; }
-
-.dialogue .speaker {
-  color: var(--gold);
-  font-size: 9px;
-  letter-spacing: .17em;
-  margin-bottom: 6px;
-}
-
-.dialogue p {
-  margin: 0;
-  font-family: Georgia, serif;
-  font-size: 15px;
-  line-height: 1.4;
-}
-
-.dialogue .tap-hint {
-  color: var(--muted);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 9px;
-  margin-top: 8px;
-  letter-spacing: .08em;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translate(-50%, 8px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-.bottom-area {
-  position: absolute;
-  z-index: 5;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 12px 16px calc(14px + var(--safe-bottom));
-  background: linear-gradient(transparent, rgba(5,12,16,.9) 24%);
-}
-
-.deploy-prompt {
-  text-align: center;
-  color: rgba(255,255,255,.75);
-  font-size: 11px;
-  margin-bottom: 12px;
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.control {
-  min-height: 48px;
-  padding: 9px 5px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: rgba(12,23,27,.86);
-  color: var(--ink);
-  font-size: 10px;
-  letter-spacing: .07em;
-  transition: background .2s, border-color .2s, transform .15s;
-}
-
-.control:active { transform: scale(.97); }
-.control.primary {
-  border-color: rgba(216,182,107,.7);
-  color: var(--gold-light);
-  background: rgba(92,72,35,.45);
-}
-.control:disabled { opacity: .35; cursor: default; }
-
-.control .symbol {
-  display: block;
-  font-size: 17px;
-  margin-bottom: 4px;
-}
-
-.secondary-controls {
+#startScreen.active {
   display: flex;
-  justify-content: center;
-  gap: 22px;
-  margin-top: 12px;
 }
 
-.text-control {
-  border: 0;
-  background: transparent;
-  color: rgba(235,239,231,.72);
-  font-size: 10px;
-  letter-spacing: .1em;
-  padding: 7px 3px;
-}
-
-.text-control:active { color: var(--gold-light); }
-
-#cameraMessage {
-  display: none;
-  position: absolute;
-  z-index: 3;
-  top: 48%;
-  left: 10%;
-  right: 10%;
-  text-align: center;
-  color: rgba(255,255,255,.7);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-#cameraMessage.visible { display: block; }
-
-/* Panels and modal */
-.scrim {
-  position: absolute;
-  z-index: 10;
-  inset: 0;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
-.scrim.open { display: flex; }
-
-.panel {
+.start-content {
   width: 100%;
-  max-width: 560px;
-  max-height: 88%;
-  overflow-y: auto;
-  padding: 22px 20px calc(22px + var(--safe-bottom));
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 12px 12px 0 0;
-  background: #17252a;
-  box-shadow: 0 -15px 50px rgba(0,0,0,.35);
-  animation: panelUp .25s ease-out;
+  max-width: 400px;
+  text-align: center;
 }
 
-@keyframes panelUp {
-  from { transform: translateY(35px); opacity: .5; }
-  to { transform: translateY(0); opacity: 1; }
+.start-emblem {
+  font-size: 78px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
+  animation: float 3s ease-in-out infinite;
 }
 
-.panel-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 18px;
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
 }
 
-.eyebrow {
-  color: var(--gold);
-  font-size: 9px;
-  letter-spacing: .19em;
-  margin-bottom: 6px;
-}
-
-.panel h2 {
-  margin: 0;
+.start-title {
+  color: var(--gold2);
   font-family: Georgia, serif;
+  font-size: clamp(37px, 10vw, 53px);
   font-weight: 400;
-  font-size: 25px;
+  letter-spacing: .03em;
+  margin: 0;
 }
 
-.panel h3 {
-  margin: 19px 0 8px;
-  color: var(--gold-light);
-  font-size: 11px;
-  letter-spacing: .12em;
-  font-weight: 600;
+.start-subtitle {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .24em;
 }
 
-.panel p {
-  color: #c5cfca;
-  font-size: 13px;
+.start-description {
+  max-width: 300px;
+  margin: 29px auto;
+  color: #d2d9df;
+  font-family: Georgia, serif;
+  font-size: 16px;
   line-height: 1.55;
 }
 
-.close {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  color: var(--ink);
-  background: transparent;
-  font-size: 18px;
+.primary-button {
+  min-width: 210px;
+  padding: 16px 24px;
+  border: 1px solid var(--gold2);
+  border-radius: 5px;
+  background: linear-gradient(135deg, #dcae51, #f5d58d);
+  color: #1b1b19;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .17em;
+  box-shadow: 0 5px 25px rgba(245,202,112,.2);
+  transition: transform .15s;
 }
 
-.briefing-quote {
-  padding: 14px;
-  border-left: 2px solid var(--gold);
-  background: rgba(0,0,0,.17);
-  color: #e1e5dc;
-  font-family: Georgia, serif;
-  font-size: 15px;
+.primary-button:active {
+  transform: scale(.97);
+}
+
+.start-footnote {
+  margin-top: 23px;
+  color: rgba(255,255,255,.47);
+  font-size: 10px;
   line-height: 1.5;
 }
 
-.objective {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-  color: #d5ddd6;
-  font-size: 12px;
+/* Hunt screen */
+
+#huntScreen {
+  z-index: 2;
 }
 
-.objective .tick {
-  width: 19px;
-  height: 19px;
-  flex: 0 0 auto;
-  border: 1px solid rgba(255,255,255,.25);
+#scanMessage {
+  position: absolute;
+  top: 34%;
+  left: 20px;
+  right: 20px;
+  text-align: center;
+  display: none;
+  pointer-events: none;
+}
+
+#scanMessage.visible {
+  display: block;
+}
+
+.scan-ring {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 19px;
+  border: 1px solid rgba(114,217,239,.45);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: transparent;
+  box-shadow: 0 0 35px rgba(114,217,239,.1);
+}
+
+.scan-ring::before,
+.scan-ring::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px dashed rgba(114,217,239,.4);
+  border-radius: 50%;
+  animation: spin 8s linear infinite;
+}
+
+.scan-ring::after {
+  inset: 25px;
+  animation-direction: reverse;
+  animation-duration: 5s;
+}
+
+.scan-crosshair {
+  color: var(--blue);
+  font-size: 35px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.scan-title {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .2em;
+}
+
+.scan-caption {
+  margin-top: 8px;
+  color: rgba(255,255,255,.65);
   font-size: 11px;
 }
 
-.objective.done .tick {
-  border-color: var(--green);
-  background: rgba(157,183,162,.18);
-  color: var(--green);
+.scan-dots::after {
+  content: "";
+  animation: dots 1.3s steps(4, end) infinite;
 }
-.objective.done span:last-child { color: var(--green); }
+@keyframes dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75%, 100% { content: "..."; }
+}
 
-.category-grid {
+/* Target */
+
+#target {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 47%;
+  width: 100px;
+  height: 100px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+  pointer-events: none;
+}
+
+#target.visible {
+  display: flex;
+  animation: targetArrival .65s cubic-bezier(.2,1.5,.5,1);
+}
+
+#target .target-emoji {
+  position: relative;
+  z-index: 2;
+  font-size: 65px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,.55));
+  animation: targetFloat 2.4s ease-in-out infinite;
+}
+
+.target-glow {
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,202,112,.32), transparent 70%);
+  animation: glow 1.7s ease-in-out infinite;
+}
+
+.target-ring {
+  position: absolute;
+  width: 95px;
+  height: 95px;
+  border: 1px solid rgba(245,202,112,.48);
+  border-radius: 50%;
+  animation: ringPulse 2.4s ease-out infinite;
+}
+
+@keyframes targetArrival {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.2) rotate(-20deg); }
+  65% { opacity: 1; transform: translate(-50%,-50%) scale(1.2) rotate(5deg); }
+  100% { transform: translate(-50%,-50%) scale(1) rotate(0); }
+}
+
+@keyframes targetFloat {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-7px) rotate(3deg); }
+}
+
+@keyframes glow {
+  0%, 100% { transform: scale(.8); opacity: .5; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes ringPulse {
+  0% { transform: scale(.7); opacity: .8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+#target.captured {
+  animation: captured .6s ease-in forwards;
+}
+
+@keyframes captured {
+  0% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  45% { opacity: 1; transform: translate(-50%,-50%) scale(1.35); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(.05); }
+}
+
+#target.missed {
+  animation: miss .35s ease;
+}
+
+@keyframes miss {
+  0%, 100% { transform: translate(-50%,-50%) rotate(0); }
+  25% { transform: translate(-50%,-50%) rotate(-12deg) translateX(-9px); }
+  75% { transform: translate(-50%,-50%) rotate(12deg) translateX(9px); }
+}
+
+/* Capture lasso */
+
+#lassoCanvas {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  pointer-events: none;
+}
+
+.lasso-hint {
+  position: absolute;
+  z-index: 8;
+  left: 20px;
+  right: 20px;
+  bottom: calc(126px + env(safe-area-inset-bottom));
+  text-align: center;
+  pointer-events: none;
+  color: rgba(255,255,255,.78);
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-shadow: 0 2px 5px #000;
+}
+
+.lasso-hint strong {
+  color: var(--gold2);
+}
+
+.lasso-device {
+  position: absolute;
+  z-index: 6;
+  bottom: calc(43px + env(safe-area-inset-bottom));
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  transform: translateX(-50%);
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 9px;
-  margin: 13px 0 16px;
+  place-items: center;
+  pointer-events: none;
 }
 
-.category {
-  min-height: 68px;
-  padding: 10px;
-  text-align: left;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: rgba(255,255,255,.025);
-  color: var(--ink);
-}
-.category.selected {
-  border-color: var(--gold);
-  background: rgba(216,182,107,.12);
-}
-.category strong {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-}
-.category small {
-  display: block;
-  color: var(--muted);
-  margin-top: 4px;
-  font-size: 10px;
-}
-.category .cat-icon {
-  float: right;
-  font-size: 18px;
+.lasso-device .orb {
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  border: 2px solid rgba(245,202,112,.95);
+  background: radial-gradient(circle at 35% 30%, #fff5ce, #f1bd55 35%, #80552a 80%);
+  box-shadow:
+    0 0 12px rgba(245,202,112,.7),
+    0 0 32px rgba(245,202,112,.3),
+    inset 0 0 8px rgba(255,255,255,.8);
+  display: grid;
+  place-items: center;
+  color: #4c351e;
+  font-size: 20px;
+  animation: devicePulse 2s ease-in-out infinite;
 }
 
-.field-label {
-  display: block;
-  color: var(--gold);
-  font-size: 9px;
-  letter-spacing: .14em;
-  margin: 14px 0 7px;
+@keyframes devicePulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(245,202,112,.7), 0 0 32px rgba(245,202,112,.3); }
+  50% { box-shadow: 0 0 20px rgba(245,202,112,1), 0 0 45px rgba(245,202,112,.5); }
 }
 
-.field {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 12px;
-  background: rgba(0,0,0,.2);
-  color: var(--ink);
-  outline: none;
-  font-size: 13px;
-}
-.field:focus { border-color: var(--gold); }
-.field::placeholder { color: #82908b; }
-textarea.field { min-height: 76px; resize: vertical; }
+/* Feedback */
 
-.action {
-  width: 100%;
-  min-height: 47px;
-  margin-top: 14px;
-  border: 1px solid var(--gold);
-  border-radius: 4px;
-  background: rgba(216,182,107,.17);
-  color: var(--gold-light);
-  font-size: 10px;
-  letter-spacing: .14em;
+#feedback {
+  position: absolute;
+  z-index: 12;
+  top: 43%;
+  left: 15px;
+  right: 15px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .2s, transform .2s;
+  text-shadow: 0 2px 10px #000;
 }
-.action:disabled { opacity: .35; }
 
-.subtle-action {
-  width: 100%;
-  margin-top: 10px;
-  padding: 11px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 10px;
+#feedback.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#feedback .feedback-title {
+  color: var(--gold2);
+  font-family: Georgia, serif;
+  font-size: 27px;
+}
+
+#feedback .feedback-sub {
+  color: #fff;
+  margin-top: 6px;
+  font-size: 11px;
   letter-spacing: .12em;
 }
 
-.report-card {
-  margin: 12px 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--gold);
-  background: rgba(0,0,0,.15);
-}
-.report-card .report-meta {
-  color: var(--gold);
+.bottom-status {
+  position: absolute;
+  z-index: 9;
+  left: 16px;
+  right: 16px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255,255,255,.55);
   font-size: 9px;
-  letter-spacing: .13em;
-}
-.report-card h4 {
-  margin: 8px 0 6px;
-  font-family: Georgia, serif;
-  font-size: 18px;
-  font-weight: 400;
-}
-.report-card p {
-  margin: 6px 0;
-  font-size: 12px;
-}
-.report-card .comment {
-  color: #aebdb5;
-  font-style: italic;
+  letter-spacing: .1em;
+  pointer-events: none;
 }
 
-.empty {
-  padding: 26px 12px;
+/* Victory */
+
+#victoryScreen {
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 22px;
+  background: rgba(8,13,20,.91);
+  backdrop-filter: blur(15px);
+}
+
+#victoryScreen.active {
+  display: flex;
+}
+
+.victory-content {
+  width: 100%;
+  max-width: 390px;
   text-align: center;
+}
+
+.victory-stars {
+  font-size: 34px;
+  color: var(--gold);
+  letter-spacing: .3em;
+  margin-bottom: 12px;
+}
+
+.victory-title {
+  color: var(--gold2);
+  font-family: Georgia, serif;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.victory-subtitle {
   color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .22em;
+  margin-top: 9px;
+}
+
+.victory-collection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 30px auto;
+}
+
+.victory-item {
+  padding: 13px 5px;
+  border: 1px solid rgba(245,202,112,.4);
+  border-radius: 9px;
+  background: rgba(245,202,112,.08);
+}
+
+.victory-item .emoji {
+  font-size: 35px;
+}
+
+.victory-item .name {
+  color: var(--gold2);
+  font-size: 9px;
+  margin-top: 6px;
+}
+
+.victory-message {
+  color: #d3d9df;
   font-family: Georgia, serif;
   font-size: 15px;
   line-height: 1.5;
+  margin-bottom: 28px;
 }
 
-.progress-track {
-  height: 5px;
-  background: rgba(255,255,255,.1);
-  border-radius: 5px;
-  overflow: hidden;
-  margin: 12px 0 5px;
-}
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--gold);
-  transition: width .3s ease;
-}
-.progress-caption {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 9px;
-  letter-spacing: .08em;
-}
+/* Camera switch */
 
-.footer-note {
-  margin-top: 18px;
-  color: #82908b;
-  font-size: 9px;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.toast {
+.camera-toggle {
   position: absolute;
-  z-index: 20;
-  left: 50%;
-  top: calc(120px + var(--safe-top));
-  transform: translateX(-50%) translateY(-8px);
-  padding: 10px 14px;
-  max-width: 86%;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: rgba(9,18,22,.94);
-  color: var(--gold-light);
-  text-align: center;
-  font-size: 11px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s, transform .2s;
-}
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  z-index: 11;
+  right: 16px;
+  bottom: calc(40px + env(safe-area-inset-bottom));
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  background: rgba(8,13,20,.55);
+  color: rgba(255,255,255,.8);
+  font-size: 9px;
+  letter-spacing: .07em;
 }
 
-@media (min-width: 700px) {
-  .bottom-area { left: 50%; width: 500px; transform: translateX(-50%); }
-  .scrim { align-items: center; padding: 20px; }
-  .panel { border-bottom: 1px solid var(--line); border-radius: 12px; }
+.hidden { display: none !important; }
+
+@media (max-height: 680px) {
+  .collection { top: calc(64px + env(safe-area-inset-top)); }
+  .collect-slot { height: 43px; }
+  .collect-slot .emoji { font-size: 19px; }
+  .lasso-hint { bottom: calc(108px + env(safe-area-inset-bottom)); }
+  .lasso-device { bottom: calc(30px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
 
 <body>
-<div id="app">
+<div id="game">
 
   <video id="camera" autoplay muted playsinline></video>
-  <div class="camera-shade"></div>
-  <div id="ambient"></div>
+  <div class="camera-overlay"></div>
+  <div class="ambient"></div>
 
-  <header class="topbar">
-    <div class="brand">
-      <strong>N.O.E.L.</strong>
-      <span>NATIONAL OFFICE OF EMOJI LIAISON</span>
+  <!-- START -->
+  <section id="startScreen" class="screen active">
+    <div class="start-content">
+      <div class="start-emblem">🔭</div>
+      <h1 class="start-title">N.O.E.L.</h1>
+      <div class="start-subtitle">NATIONAL OFFICE OF EMOJI LIAISON</div>
+      <p class="start-description">
+        Six elusive emojis are somewhere in your surroundings.
+        Find them. Trap them. Bring them home.
+      </p>
+      <button class="primary-button" id="startButton">START HUNT</button>
+      <div class="start-footnote">
+        A N.O.E.L. field operation<br>
+        Six characters. One capture device. No pressure.
+      </div>
     </div>
-    <div class="status" id="status">HEADQUARTERS LINK</div>
-  </header>
-
-  <section class="mission-strip">
-    <div class="eyebrow">CURRENT ASSIGNMENT · 001</div>
-    <div class="mission-name">The Human World</div>
-    <div class="mission-sub" id="missionSummary">Initial field observations required.</div>
   </section>
 
-  <div id="sceneHint">AWAITING OPERATIVE DEPLOYMENT</div>
-  <div id="cameraMessage">Camera access is not currently active.<br>Deploy the operative to begin.</div>
+  <!-- GAME -->
+  <section id="huntScreen" class="screen">
+    <header class="topbar">
+      <div class="logo">
+        N.O.E.L.
+        <small>EMOJI HUNT</small>
+      </div>
+      <div class="round-counter" id="counter">0 / 6 CAPTURED</div>
+    </header>
 
-  <div id="operative" aria-label="Operative T-01">
-    <div class="character-shadow"></div>
-    <div class="character">
-      <div class="telescope">🔭</div>
-      <div class="operative-eye"></div>
-      <div class="character-label">OPERATIVE T-01</div>
+    <div class="collection" id="collection"></div>
+
+    <div id="scanMessage">
+      <div class="scan-ring">
+        <div class="scan-crosshair">⌖</div>
+      </div>
+      <div class="scan-title">SCANNING ENVIRONMENT<span class="scan-dots"></span></div>
+      <div class="scan-caption" id="scanCaption">Searching for emoji activity...</div>
     </div>
-  </div>
 
-  <div class="dialogue" id="dialogue">
-    <div class="speaker">OPERATIVE T-01 · FIELD TRANSMISSION</div>
-    <p id="dialogueText">Ah. You're here. Excellent. I was beginning to suspect I'd been abandoned.</p>
-    <div class="tap-hint">TAP OPERATIVE TO COMMUNICATE</div>
-  </div>
-
-  <div class="bottom-area">
-    <div class="deploy-prompt" id="deployPrompt">Your operative is standing by.</div>
-    <div class="controls">
-      <button class="control primary" id="deployBtn">
-        <span class="symbol">⌖</span>DEPLOY
-      </button>
-      <button class="control" id="investigateBtn" disabled>
-        <span class="symbol">◎</span>INVESTIGATE
-      </button>
-      <button class="control" id="journalBtn">
-        <span class="symbol">▤</span>FIELD JOURNAL
-      </button>
+    <div id="target">
+      <div class="target-glow"></div>
+      <div class="target-ring"></div>
+      <div class="target-emoji" id="targetEmoji">🔭</div>
     </div>
-    <div class="secondary-controls">
-      <button class="text-control" id="briefingBtn">MISSION BRIEFING</button>
-      <button class="text-control" id="reportBtn">REPORT TO HQ</button>
-      <button class="text-control" id="cameraBtn">CAMERA ON</button>
+
+    <canvas id="lassoCanvas"></canvas>
+
+    <div class="lasso-device" id="lassoDevice">
+      <div class="orb">◎</div>
     </div>
-  </div>
 
-  <div class="toast" id="toast"></div>
+    <div class="lasso-hint" id="lassoHint">
+      <strong>DRAW A LOOP</strong> around the emoji to capture it
+    </div>
 
-  <!-- MISSION BRIEFING -->
-  <div class="scrim" id="briefingModal">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">N.O.E.L. · PERSONNEL DISPATCH</div>
-          <h2>Mission 001</h2>
-        </div>
-        <button class="close" data-close="briefingModal">×</button>
-      </div>
-      <h3>THE HUMAN WORLD</h3>
-      <div class="briefing-quote">
-        Operative T-01, you are hereby assigned to Earth Observation. Your task is to document the peculiar habits, objects and environments encountered in human civilisation.
-        <br><br>
-        Please exercise discretion. Humans are notoriously unpredictable, particularly before breakfast.
-      </div>
-      <h3>MISSION OBJECTIVES</h3>
-      <div id="briefingObjectives"></div>
-      <div class="progress-track"><div class="progress-fill" id="briefingProgress"></div></div>
-      <div class="progress-caption">
-        <span>MISSION PROGRESS</span><span id="briefingProgressText">0 / 4</span>
-      </div>
-      <p>Three observations and a submitted field report are required to complete your probationary assignment.</p>
-      <button class="action" data-close="briefingModal">UNDERSTOOD. PROCEED.</button>
-    </section>
-  </div>
+    <div id="feedback">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div class="feedback-sub" id="feedbackSub"></div>
+    </div>
 
-  <!-- INVESTIGATION -->
-  <div class="scrim" id="investigateModal">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">FIELDWORK · NEW OBSERVATION</div>
-          <h2>What have we here?</h2>
-        </div>
-        <button class="close" data-close="investigateModal">×</button>
-      </div>
-      <p>Identify the subject of your investigation. The operative will prepare an assessment based on your description. Headquarters has not yet approved a budget for mind-reading.</p>
+    <button class="camera-toggle" id="cameraToggle">CAMERA OFF</button>
 
-      <h3>SELECT SUBJECT CLASSIFICATION</h3>
-      <div class="category-grid" id="categoryGrid">
-        <button class="category selected" data-category="Nature">
-          <span class="cat-icon">🌿</span><strong>Nature</strong><small>Plants, landscapes, weather</small>
-        </button>
-        <button class="category" data-category="Everyday object">
-          <span class="cat-icon">🪑</span><strong>Everyday object</strong><small>Things humans have invented</small>
-        </button>
-        <button class="category" data-category="Human activity">
-          <span class="cat-icon">🧍</span><strong>Human activity</strong><small>Customs, habits, behaviour</small>
-        </button>
-        <button class="category" data-category="Architecture">
-          <span class="cat-icon">🏛️</span><strong>Architecture</strong><small>Buildings and structures</small>
-        </button>
-        <button class="category" data-category="Animal">
-          <span class="cat-icon">🐦</span><strong>Animal</strong><small>Non-human personnel</small>
-        </button>
-      </div>
+    <div class="bottom-status">
+      <span>FIELD OPERATION ACTIVE</span>
+      <span>NOEL · 001</span>
+    </div>
+  </section>
 
-      <label class="field-label" for="subjectInput">WHAT ARE WE OBSERVING?</label>
-      <input class="field" id="subjectInput" maxlength="70" placeholder="e.g. a magpie, a coffee machine, a tree">
-
-      <label class="field-label" for="detailInput">FIELD NOTES (OPTIONAL)</label>
-      <textarea class="field" id="detailInput" maxlength="220" placeholder="Anything unusual worth mentioning?"></textarea>
-
-      <button class="action" id="fileObservationBtn">SUBMIT FIELD OBSERVATION</button>
-      <button class="subtle-action" data-close="investigateModal">CANCEL INVESTIGATION</button>
-    </section>
-  </div>
-
-  <!-- JOURNAL -->
-  <div class="scrim" id="journalModal">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">CLASSIFIED · PERSONNEL RECORD</div>
-          <h2>Field Journal</h2>
-        </div>
-        <button class="close" data-close="journalModal">×</button>
-      </div>
-      <p>A record of observations submitted by Operative T-01. Accuracy is encouraged, although not always expected.</p>
-      <div id="journalEntries"></div>
-      <div class="footer-note">ALL REPORTS ARE PROPERTY OF THE NATIONAL OFFICE OF EMOJI LIAISON.</div>
-      <button class="subtle-action" data-close="journalModal">CLOSE JOURNAL</button>
-    </section>
-  </div>
-
-  <!-- HEADQUARTERS REPORT -->
-  <div class="scrim" id="reportModal">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">SECURE TRANSMISSION · HEADQUARTERS</div>
-          <h2>End of assignment</h2>
-        </div>
-        <button class="close" data-close="reportModal">×</button>
-      </div>
-      <div id="reportContent"></div>
-      <button class="action" id="submitReportBtn">TRANSMIT FIELD REPORT</button>
-      <button class="subtle-action" data-close="reportModal">RETURN TO FIELD</button>
-    </section>
-  </div>
-
-  <!-- MISSION COMPLETE -->
-  <div class="scrim" id="completeModal">
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="eyebrow">HEADQUARTERS · PERSONNEL UPDATE</div>
-          <h2>Mission accomplished</h2>
-        </div>
-        <button class="close" data-close="completeModal">×</button>
-      </div>
-      <div class="briefing-quote">
-        Operative T-01, your initial field report has been received and reviewed.
-        <br><br>
-        You are hereby awarded the designation:
-        <br><br>
-        <strong style="color:var(--gold-light);letter-spacing:.12em">PROBATIONARY OBSERVER</strong>
-        <br><br>
-        This is not, strictly speaking, a promotion. But it is a start.
-      </div>
-      <p id="completionStats"></p>
-      <button class="action" data-close="completeModal">RETURN TO DUTY</button>
-    </section>
-  </div>
+  <!-- VICTORY -->
+  <section id="victoryScreen" class="screen">
+    <div class="victory-content">
+      <div class="victory-stars">✦ ✧ ✦</div>
+      <div class="victory-title">Collection complete!</div>
+      <div class="victory-subtitle">N.O.E.L. FIELD OPERATION SUCCESSFUL</div>
+      <div class="victory-collection" id="victoryCollection"></div>
+      <p class="victory-message">
+        All six emojis safely captured and returned to headquarters.
+        An extraordinary achievement. Try to remain humble.
+      </p>
+      <button class="primary-button" id="playAgainButton">PLAY AGAIN</button>
+    </div>
+  </section>
 
 </div>
 
@@ -907,229 +761,91 @@ textarea.field { min-height: 76px; resize: vertical; }
 
   const $ = id => document.getElementById(id);
 
-  const STORAGE_KEY = "noel_field_operative_v1";
-
-  const defaultState = {
-    deployed: false,
-    cameraOn: false,
-    selectedCategory: "Nature",
-    observations: [],
-    submitted: false,
-    completed: false,
-    left: 50,
-    top: 54
-  };
-
-  let state = loadState();
-  let cameraStream = null;
-  let tapCount = 0;
-  let toastTimer = null;
-
-  function loadState() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return saved ? { ...defaultState, ...saved } : { ...defaultState };
-    } catch {
-      return { ...defaultState };
-    }
-  }
-
-  function saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (error) {
-      console.warn("N.O.E.L. could not save local records.", error);
-    }
-  }
-
-  const dialogueLines = {
-    greeting: [
-      "Ah. You're here. Excellent. I was beginning to suspect I'd been abandoned.",
-      "Operative T-01 reporting for duty. I trust the situation has not deteriorated in my absence.",
-      "Good morning. Or afternoon. Headquarters has not supplied me with a clock.",
-      "I have been ready for some time. I chose not to make a fuss."
-    ],
-    waiting: [
-      "I have been observing this location for some time. It remains largely unchanged.",
-      "A quiet posting. One might almost suspect it was deliberate.",
-      "I have noticed several things. Most of them appear to be stationary.",
-      "I don't wish to alarm you, but the surroundings continue to exist.",
-      "I am beginning to understand why humans invented weekends."
-    ],
-    repeated: [
-      "Yes, yes. I am aware of your presence.",
-      "You needn't keep checking. I remain magnificently operational.",
-      "Is there a reason you keep tapping me? I am not a doorbell.",
-      "I shall add 'persistent supervision' to my report."
-    ],
-    curious: [
-      "An intriguing development. I shall exaggerate its importance in my report.",
-      "Remarkable. I have no idea what that means, but I am impressed.",
-      "I recommend we investigate further. Preferably after a short break.",
-      "I have seen stranger things. Not many, admittedly.",
-      "I have a theory. It is probably wrong, but it is a theory."
-    ],
-    idle: [
-      "Headquarters has asked me to remain alert. I have interpreted this as a general instruction.",
-      "I have been promised a desk upon successful completion of this assignment. I remain hopeful.",
-      "Do you suppose humans know how odd they are?",
-      "I have requested a modest field allowance. They sent me a pamphlet.",
-      "My last operative review described me as 'technically present'. I consider that unfair."
-    ]
-  };
-
-  const categoryComments = {
-    "Nature": [
-      "Nature appears to be operating without any visible management structure. Bold.",
-      "A pleasing example of the outdoors. I shall recommend further outdoors.",
-      "The natural world is alarmingly self-sufficient. One to watch."
-    ],
-    "Everyday object": [
-      "A remarkable human invention. It appears to solve a problem humans may have invented themselves.",
-      "I admire the confidence with which humans surround themselves with objects.",
-      "Useful, presumably. I shall reserve judgement until I have read the manual."
-    ],
-    "Human activity": [
-      "Humans are an extraordinary species. I mean that in the most diplomatic sense.",
-      "A fascinating ritual. I suspect there are rules. There are always rules.",
-      "I have observed this behaviour and remain professionally puzzled."
-    ],
-    "Architecture": [
-      "An ambitious arrangement of materials. It appears to be keeping the weather out.",
-      "Humans build enormous boxes and then spend most of their time inside them.",
-      "Structurally impressive. I would have gone with something smaller."
-    ],
-    "Animal": [
-      "A non-human operative. Appears to be working without supervision.",
-      "Excellent field conduct. No paperwork, no meetings, no apparent concerns.",
-      "I have attempted to establish contact. The subject declined to acknowledge my authority."
-    ]
-  };
-
-  const objectiveDefinitions = [
-    {
-      id: "nature",
-      label: "Observe something natural",
-      check: o => o.category === "Nature" || o.category === "Animal"
-    },
-    {
-      id: "object",
-      label: "Investigate an everyday object",
-      check: o => o.category === "Everyday object"
-    },
-    {
-      id: "human",
-      label: "Record an unusual human activity",
-      check: o => o.category === "Human activity"
-    },
-    {
-      id: "report",
-      label: "Submit your initial field report",
-      check: () => state.submitted
-    }
+  const characters = [
+    { id: "telescope", emoji: "🔭", name: "Telescope" },
+    { id: "detective", emoji: "🕵️", name: "Detective" },
+    { id: "croissant", emoji: "🥐", name: "Croissant" },
+    { id: "sloth", emoji: "🦥", name: "Sloth" },
+    { id: "palette", emoji: "🎨", name: "Palette" },
+    { id: "train", emoji: "🚂", name: "Train" }
   ];
 
-  function completedObjectives() {
-    return objectiveDefinitions.filter(obj =>
-      obj.id === "report" ? state.submitted : state.observations.some(obj.check)
-    ).length;
+  const state = {
+    found: [],
+    current: null,
+    phase: "start",
+    scanTimer: null,
+    feedbackTimer: null,
+    cameraStream: null,
+    cameraOn: false,
+    path: [],
+    drawing: false,
+    pointerId: null,
+    lastScanTime: 0
+  };
+
+  const canvas = $("lassoCanvas");
+  const ctx = canvas.getContext("2d");
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
   }
 
-  function showToast(message) {
-    const toast = $("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+  function shuffle(array) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
   }
 
-  function speak(message, duration = 7000) {
-    $("dialogueText").textContent = message;
-    $("dialogue").classList.add("visible");
-    clearTimeout(speak.timer);
-    speak.timer = setTimeout(() => {
-      $("dialogue").classList.remove("visible");
-    }, duration);
-  }
-
-  function randomLine(group) {
-    const lines = dialogueLines[group];
-    return lines[Math.floor(Math.random() * lines.length)];
-  }
-
-  function openModal(id) {
-    $(id).classList.add("open");
-  }
-
-  function closeModal(id) {
-    $(id).classList.remove("open");
-  }
-
-  document.querySelectorAll("[data-close]").forEach(button => {
-    button.addEventListener("click", () => closeModal(button.dataset.close));
-  });
-
-  document.querySelectorAll(".scrim").forEach(scrim => {
-    scrim.addEventListener("click", event => {
-      if (event.target === scrim) scrim.classList.remove("open");
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(screen => {
+      screen.classList.remove("active");
     });
-  });
-
-  function updateUI() {
-    $("operative").classList.toggle("deployed", state.deployed);
-    $("investigateBtn").disabled = !state.deployed;
-    $("deployBtn").innerHTML = state.deployed
-      ? '<span class="symbol">↻</span>REPOSITION'
-      : '<span class="symbol">⌖</span>DEPLOY';
-
-    $("deployPrompt").textContent = state.deployed
-      ? "Operative T-01 is deployed. Tap to communicate."
-      : "Your operative is standing by.";
-
-    $("sceneHint").style.display = state.deployed ? "none" : "block";
-    $("cameraMessage").classList.toggle("visible", !state.cameraOn);
-
-    $("operative").style.left = state.left + "%";
-    $("operative").style.top = state.top + "%";
-
-    $("status").textContent = state.cameraOn ? "FIELD LINK ACTIVE" : "FIELD LINK STANDBY";
-    $("cameraBtn").textContent = state.cameraOn ? "CAMERA OFF" : "CAMERA ON";
-
-    const count = completedObjectives();
-    $("missionSummary").textContent = state.completed
-      ? "Probationary Observer · Mission complete"
-      : `${count} of 4 objectives completed`;
-
-    $("reportBtn").textContent = state.submitted ? "REPORT FILED ✓" : "REPORT TO HQ";
-    renderObjectives();
+    $(id).classList.add("active");
   }
 
-  function renderObjectives() {
-    const html = objectiveDefinitions.map(obj => {
-      const done = obj.id === "report"
-        ? state.submitted
-        : state.observations.some(obj.check);
+  function resizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawPath();
+  }
 
-      return `<div class="objective ${done ? "done" : ""}">
-        <span class="tick">✓</span><span>${obj.label}</span>
-      </div>`;
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function renderCollection() {
+    $("collection").innerHTML = characters.map((character, index) => {
+      const found = state.found.includes(character.id);
+
+      return `
+        <div class="collect-slot ${found ? "found" : ""}">
+          <div class="emoji">${character.emoji}</div>
+          <div class="number">${found ? "CAPTURED" : "UNKNOWN"}</div>
+        </div>
+      `;
     }).join("");
 
-    $("briefingObjectives").innerHTML = html;
-
-    const count = completedObjectives();
-    $("briefingProgress").style.width = (count / 4 * 100) + "%";
-    $("briefingProgressText").textContent = `${count} / 4`;
+    $("counter").textContent = `${state.found.length} / 6 CAPTURED`;
   }
 
-  async function startCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showToast("This browser does not support camera access.");
-      return;
+  function remainingCharacters() {
+    return characters.filter(character => !state.found.includes(character.id));
+  }
+
+  async function enableCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return false;
     }
 
     try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
           facingMode: { ideal: "environment" },
@@ -1138,371 +854,471 @@ textarea.field { min-height: 76px; resize: vertical; }
         }
       });
 
-      const video = $("camera");
-      video.srcObject = cameraStream;
-      await video.play();
-
-      video.style.display = "block";
+      state.cameraStream = stream;
       state.cameraOn = true;
-      $("ambient").style.background = "transparent";
-      $("cameraMessage").classList.remove("visible");
-      saveState();
-      updateUI();
-      showToast("Field camera connected. Try not to look suspicious.");
-    } catch (error) {
-      console.error(error);
-      state.cameraOn = false;
-      updateUI();
 
-      if (error.name === "NotAllowedError") {
-        showToast("Camera permission was declined. You can enable it in Safari settings.");
-      } else if (error.name === "NotFoundError") {
-        showToast("No camera could be found on this device.");
-      } else {
-        showToast("Camera unavailable. The mission can continue without it.");
-      }
+      const video = $("camera");
+      video.srcObject = stream;
+      await video.play();
+      video.style.display = "block";
+
+      $("cameraToggle").textContent = "CAMERA ON";
+      return true;
+
+    } catch (error) {
+      console.warn("Camera unavailable:", error);
+      state.cameraOn = false;
+      $("cameraToggle").textContent = "CAMERA OFF";
+      return false;
     }
   }
 
-  function stopCamera() {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      cameraStream = null;
+  function disableCamera() {
+    if (state.cameraStream) {
+      state.cameraStream.getTracks().forEach(track => track.stop());
+      state.cameraStream = null;
     }
 
     $("camera").srcObject = null;
     $("camera").style.display = "none";
-    $("ambient").style.background = "";
     state.cameraOn = false;
-    saveState();
-    updateUI();
+    $("cameraToggle").textContent = "CAMERA OFF";
   }
 
-  $("cameraBtn").addEventListener("click", () => {
-    if (state.cameraOn) stopCamera();
-    else startCamera();
-  });
-
-  function deployOperative() {
-    if (!state.deployed) {
-      state.deployed = true;
-      state.left = 50;
-      state.top = 54;
-      saveState();
-      updateUI();
-
-      $("operative").classList.remove("arriving");
-      void $("operative").offsetWidth;
-      $("operative").classList.add("arriving");
-
-      speak(randomLine("greeting"), 9000);
-      showToast("Operative T-01 successfully deployed.");
+  $("cameraToggle").addEventListener("click", async () => {
+    if (state.cameraOn) {
+      disableCamera();
     } else {
-      state.left = 50;
-      state.top = 54;
-      saveState();
-      updateUI();
-      speak("Repositioning complete. I trust this location meets your exacting standards.");
-    }
-  }
-
-  $("deployBtn").addEventListener("click", deployOperative);
-
-  // Drag the operative around the screen.
-  let dragStart = null;
-
-  $("operative").addEventListener("pointerdown", event => {
-    if (event.target.closest(".character-label")) return;
-    dragStart = {
-      x: event.clientX,
-      y: event.clientY,
-      left: state.left,
-      top: state.top,
-      moved: false
-    };
-    $("operative").classList.add("dragging");
-    $("operative").setPointerCapture(event.pointerId);
-  });
-
-  $("operative").addEventListener("pointermove", event => {
-    if (!dragStart) return;
-
-    const dx = event.clientX - dragStart.x;
-    const dy = event.clientY - dragStart.y;
-
-    if (Math.abs(dx) + Math.abs(dy) > 7) dragStart.moved = true;
-    if (!dragStart.moved) return;
-
-    state.left = Math.max(12, Math.min(88, dragStart.left + dx / window.innerWidth * 100));
-    state.top = Math.max(24, Math.min(76, dragStart.top + dy / window.innerHeight * 100));
-    $("operative").style.left = state.left + "%";
-    $("operative").style.top = state.top + "%";
-  });
-
-  $("operative").addEventListener("pointerup", () => {
-    if (!dragStart) return;
-    const moved = dragStart.moved;
-    dragStart = null;
-    $("operative").classList.remove("dragging");
-
-    if (moved) {
-      saveState();
-    } else {
-      operativeTapped();
+      await enableCamera();
     }
   });
 
-  $("operative").addEventListener("pointercancel", () => {
-    dragStart = null;
-    $("operative").classList.remove("dragging");
-  });
+  function startGame() {
+    state.found = [];
+    state.current = null;
+    state.phase = "scanning";
 
-  function operativeTapped() {
-    tapCount++;
+    renderCollection();
+    showScreen("huntScreen");
 
-    const line = tapCount % 4 === 0
-      ? randomLine("repeated")
-      : tapCount % 3 === 0
-        ? randomLine("curious")
-        : randomLine("waiting");
+    // Request camera permission as part of the user's start action.
+    enableCamera();
 
-    $("operative").classList.remove("blinking");
-    void $("operative").offsetWidth;
-    $("operative").classList.add("blinking");
-
-    speak(line);
+    beginScan();
   }
 
-  $("investigateBtn").addEventListener("click", () => {
-    if (!state.deployed) {
-      showToast("Please deploy the operative first.");
-      return;
-    }
-    $("subjectInput").value = "";
-    $("detailInput").value = "";
-    selectCategory(state.selectedCategory);
-    openModal("investigateModal");
-  });
+  $("startButton").addEventListener("click", startGame);
+  $("playAgainButton").addEventListener("click", startGame);
 
-  function selectCategory(category) {
-    state.selectedCategory = category;
-    document.querySelectorAll(".category").forEach(button => {
-      button.classList.toggle("selected", button.dataset.category === category);
-    });
-  }
+  function beginScan() {
+    clearTimeout(state.scanTimer);
 
-  document.querySelectorAll(".category").forEach(button => {
-    button.addEventListener("click", () => selectCategory(button.dataset.category));
-  });
+    state.phase = "scanning";
+    state.current = null;
 
-  function makeAssessment(category, subject, detail) {
-    const lines = categoryComments[category];
-    const comment = lines[Math.floor(Math.random() * lines.length)];
+    $("target").classList.remove("visible", "captured", "missed");
+    $("scanMessage").classList.add("visible");
+    $("lassoHint").innerHTML = "<strong>SCANNING</strong> — something may be nearby...";
+    $("lassoDevice").style.opacity = ".45";
 
-    const extra = detail
-      ? ` Additional note: "${detail}"`
-      : "";
+    clearCanvas();
 
-    const verdicts = [
-      "Further investigation recommended.",
-      "No immediate action required.",
-      "Worth keeping an eye on.",
-      "Potentially significant. I shall alert nobody until further notice.",
-      "Filed for future reference, and possible promotion."
+    const captions = [
+      "Searching for emoji activity...",
+      "Checking local emoji frequencies...",
+      "Detecting unusual character behaviour...",
+      "Scanning for suspiciously cute activity...",
+      "Establishing contact..."
     ];
 
-    const verdict = verdicts[Math.floor(Math.random() * verdicts.length)];
+    $("scanCaption").textContent =
+      captions[Math.floor(Math.random() * captions.length)];
 
+    // A little suspense before the next emoji appears.
+    const delay = random(3000, 6500);
+
+    state.scanTimer = setTimeout(() => {
+      revealCharacter();
+    }, delay);
+  }
+
+  function revealCharacter() {
+    const remaining = remainingCharacters();
+
+    if (!remaining.length) {
+      finishGame();
+      return;
+    }
+
+    const character = remaining[Math.floor(Math.random() * remaining.length)];
+    state.current = character;
+    state.phase = "target";
+
+    $("scanMessage").classList.remove("visible");
+    $("targetEmoji").textContent = character.emoji;
+
+    // Keep the target clear of the top collection and bottom capture area.
+    const x = random(20, 80);
+    const y = random(29, 64);
+
+    const size = random(82, 112);
+    $("target").style.left = x + "%";
+    $("target").style.top = y + "%";
+    $("target").style.width = size + "px";
+    $("target").style.height = size + "px";
+
+    $("target").classList.remove("captured", "missed");
+    $("target").classList.add("visible");
+
+    $("lassoDevice").style.opacity = "1";
+    $("lassoHint").innerHTML =
+      "<strong>DRAW A LOOP</strong> around the emoji to capture it";
+
+    state.lastScanTime = Date.now();
+
+    playAppearSound();
+  }
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    state.path = [];
+    state.drawing = false;
+  }
+
+  function getPoint(event) {
+    const rect = canvas.getBoundingClientRect();
     return {
-      comment: `${comment}${extra}`,
-      verdict
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
     };
   }
 
-  $("fileObservationBtn").addEventListener("click", () => {
-    const subject = $("subjectInput").value.trim();
-    const detail = $("detailInput").value.trim();
-    const category = state.selectedCategory;
+  function drawPath() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    if (!subject) {
-      showToast("Please identify the subject of your investigation.");
-      $("subjectInput").focus();
+    if (state.path.length < 2) return;
+
+    // Main luminous lasso.
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(state.path[0].x, state.path[0].y);
+
+    for (let i = 1; i < state.path.length; i++) {
+      ctx.lineTo(state.path[i].x, state.path[i].y);
+    }
+
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(255, 222, 143, .95)";
+    ctx.lineWidth = 5;
+    ctx.shadowColor = "#ffc85b";
+    ctx.shadowBlur = 18;
+    ctx.stroke();
+
+    // Bright inner highlight.
+    ctx.beginPath();
+    ctx.moveTo(state.path[0].x, state.path[0].y);
+
+    for (let i = 1; i < state.path.length; i++) {
+      ctx.lineTo(state.path[i].x, state.path[i].y);
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,.8)";
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 5;
+    ctx.stroke();
+
+    // Small sparkle at the drawing tip.
+    const last = state.path[state.path.length - 1];
+    ctx.beginPath();
+    ctx.arc(last.x, last.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff6d8";
+    ctx.shadowColor = "#ffcf6a";
+    ctx.shadowBlur = 16;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function startDrawing(event) {
+    if (state.phase !== "target" || state.drawing) return;
+
+    event.preventDefault();
+
+    state.drawing = true;
+    state.pointerId = event.pointerId;
+    state.path = [getPoint(event)];
+
+    canvas.setPointerCapture(event.pointerId);
+    drawPath();
+  }
+
+  function continueDrawing(event) {
+    if (!state.drawing || event.pointerId !== state.pointerId) return;
+
+    event.preventDefault();
+
+    const point = getPoint(event);
+    const last = state.path[state.path.length - 1];
+
+    const distance = Math.hypot(point.x - last.x, point.y - last.y);
+
+    // Ignore tiny movements to keep the trail smooth.
+    if (distance > 2) {
+      state.path.push(point);
+      drawPath();
+    }
+  }
+
+  function finishDrawing(event) {
+    if (!state.drawing || event.pointerId !== state.pointerId) return;
+
+    event.preventDefault();
+
+    state.drawing = false;
+    state.pointerId = null;
+
+    if (state.path.length < 12) {
+      clearCanvas();
       return;
     }
 
-    const assessment = makeAssessment(category, subject, detail);
+    evaluateLoop();
+  }
 
-    const observation = {
-      id: Date.now(),
-      category,
-      subject,
-      detail,
-      comment: assessment.comment,
-      verdict: assessment.verdict,
-      date: new Date().toISOString()
+  canvas.addEventListener("pointerdown", startDrawing);
+  canvas.addEventListener("pointermove", continueDrawing);
+  canvas.addEventListener("pointerup", finishDrawing);
+  canvas.addEventListener("pointercancel", finishDrawing);
+
+  // Test whether the drawn lasso actually surrounds the emoji.
+  function pointInsidePolygon(point, polygon) {
+    let inside = false;
+
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const a = polygon[i];
+      const b = polygon[j];
+
+      const intersects =
+        ((a.y > point.y) !== (b.y > point.y)) &&
+        (point.x < (b.x - a.x) * (point.y - a.y) /
+          ((b.y - a.y) || .00001) + a.x);
+
+      if (intersects) inside = !inside;
+    }
+
+    return inside;
+  }
+
+  function evaluateLoop() {
+    const points = state.path;
+    const first = points[0];
+    const last = points[points.length - 1];
+
+    const closureDistance = Math.hypot(
+      last.x - first.x,
+      last.y - first.y
+    );
+
+    const targetRect = $("target").getBoundingClientRect();
+
+    const targetCentre = {
+      x: targetRect.left + targetRect.width / 2,
+      y: targetRect.top + targetRect.height / 2
     };
 
-    state.observations.unshift(observation);
-    saveState();
-    closeModal("investigateModal");
-    updateUI();
+    const isClosed = closureDistance < 75;
+    const enclosesTarget = pointInsidePolygon(targetCentre, points);
 
-    speak(`SUBJECT IDENTIFIED: ${subject}. ${assessment.comment}`, 10000);
-    showToast("Observation filed. Headquarters has been notified.");
+    // Avoid allowing a huge loop around almost the whole screen.
+    const area = polygonArea(points);
+    const screenArea = window.innerWidth * window.innerHeight;
+    const reasonableSize = area < screenArea * .65;
 
-    if (!state.completed && completedObjectives() === 3) {
-      setTimeout(() => {
-        speak("I believe we have enough material for an initial report. I suggest we submit it before anyone asks for more.", 9000);
-      }, 2200);
-    }
-  });
+    const success = isClosed && enclosesTarget && reasonableSize;
 
-  $("journalBtn").addEventListener("click", () => {
-    renderJournal();
-    openModal("journalModal");
-  });
-
-  function renderJournal() {
-    const container = $("journalEntries");
-
-    if (!state.observations.length) {
-      container.innerHTML = `<div class="empty">
-        No field observations recorded.<br>
-        A somewhat disappointing start to the assignment.
-      </div>`;
-      return;
-    }
-
-    container.innerHTML = state.observations.map((o, index) => {
-      const date = new Date(o.date).toLocaleString([], {
-        day: "numeric", month: "short", year: "numeric",
-        hour: "2-digit", minute: "2-digit"
-      });
-
-      return `<article class="report-card">
-        <div class="report-meta">FIELD REPORT ${String(state.observations.length - index).padStart(3, "0")} · ${escapeHTML(o.category.toUpperCase())}</div>
-        <h4>${escapeHTML(o.subject)}</h4>
-        <div class="report-meta">${escapeHTML(date)}</div>
-        <p>${escapeHTML(o.comment)}</p>
-        <p class="comment">${escapeHTML(o.verdict)}</p>
-      </article>`;
-    }).join("");
-  }
-
-  function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    })[char]);
-  }
-
-  $("briefingBtn").addEventListener("click", () => {
-    renderObjectives();
-    openModal("briefingModal");
-  });
-
-  $("reportBtn").addEventListener("click", () => {
-    renderReport();
-    openModal("reportModal");
-  });
-
-  function renderReport() {
-    const count = state.observations.length;
-    const objectives = completedObjectives();
-
-    $("reportContent").innerHTML = `
-      <div class="briefing-quote">
-        Operative T-01 has completed ${count} field observation${count === 1 ? "" : "s"}.
-        <br><br>
-        ${count >= 3
-          ? "Sufficient evidence has been gathered to submit the initial field report."
-          : "Further observations are recommended before the initial field report is submitted."}
-      </div>
-      <h3>ASSIGNMENT SUMMARY</h3>
-      <div class="objective ${state.observations.some(o => o.category === "Nature" || o.category === "Animal") ? "done" : ""}">
-        <span class="tick">✓</span><span>Natural world observations</span>
-      </div>
-      <div class="objective ${state.observations.some(o => o.category === "Everyday object") ? "done" : ""}">
-        <span class="tick">✓</span><span>Everyday object investigations</span>
-      </div>
-      <div class="objective ${state.observations.some(o => o.category === "Human activity") ? "done" : ""}">
-        <span class="tick">✓</span><span>Human behaviour assessments</span>
-      </div>
-      <p>Objectives completed: <strong>${objectives} / 4</strong></p>
-      <p>Reports on file: <strong>${count}</strong></p>
-      ${state.submitted
-        ? '<p style="color:var(--green)">Your initial report has already been transmitted.</p>'
-        : ""}
-    `;
-
-    $("submitReportBtn").disabled = state.submitted || count < 3;
-    $("submitReportBtn").textContent = state.submitted
-      ? "REPORT ALREADY TRANSMITTED"
-      : count < 3
-        ? "THREE OBSERVATIONS REQUIRED"
-        : "TRANSMIT FIELD REPORT";
-  }
-
-  $("submitReportBtn").addEventListener("click", () => {
-    if (state.submitted || state.observations.length < 3) return;
-
-    state.submitted = true;
-    saveState();
-    updateUI();
-    closeModal("reportModal");
-
-    if (!state.completed) {
-      state.completed = true;
-      saveState();
-
-      $("completionStats").textContent =
-        `${state.observations.length} observations have been safely archived. Operative T-01's personnel record has been updated.`;
-
-      setTimeout(() => openModal("completeModal"), 450);
-      speak("Report transmitted. I have been informed that this is a good result. I shall try not to let it affect me.", 10000);
+    if (success) {
+      captureCharacter();
     } else {
-      showToast("Report successfully retransmitted. Headquarters is thrilled.");
+      missCharacter(isClosed, enclosesTarget, reasonableSize);
     }
-  });
+  }
 
-  // A little unscripted personality while the user is idle.
-  let idleTimer;
-  let idleCycle = 0;
+  function polygonArea(points) {
+    let area = 0;
 
-  function resetIdleTimer() {
-    clearTimeout(idleTimer);
-    if (!state.deployed) return;
+    for (let i = 0; i < points.length; i++) {
+      const j = (i + 1) % points.length;
+      area += points[i].x * points[j].y;
+      area -= points[j].x * points[i].y;
+    }
 
-    idleTimer = setTimeout(() => {
-      if (!$("dialogue").classList.contains("visible") &&
-          !document.querySelector(".scrim.open")) {
-        idleCycle++;
-        if (idleCycle % 2 === 0) speak(randomLine("idle"), 6500);
+    return Math.abs(area / 2);
+  }
+
+  function captureCharacter() {
+    if (state.phase !== "target" || !state.current) return;
+
+    state.phase = "capturing";
+
+    const captured = state.current;
+
+    $("target").classList.add("captured");
+    $("lassoHint").innerHTML = "<strong>CAPTURE SUCCESSFUL</strong>";
+
+    showFeedback("GOTCHA!", captured.emoji + " " + captured.name.toUpperCase() + " CAPTURED");
+
+    playCaptureSound();
+
+    setTimeout(() => {
+      if (!state.found.includes(captured.id)) {
+        state.found.push(captured.id);
       }
-      resetIdleTimer();
-    }, 18000);
+
+      renderCollection();
+      clearCanvas();
+
+      $("target").classList.remove("visible", "captured");
+      $("feedback").classList.remove("show");
+
+      if (state.found.length === characters.length) {
+        finishGame();
+      } else {
+        state.current = null;
+        setTimeout(beginScan, 700);
+      }
+    }, 850);
   }
 
-  ["pointerdown", "touchstart", "keydown"].forEach(eventName => {
-    document.addEventListener(eventName, resetIdleTimer, { passive: true });
-  });
+  function missCharacter(closed, enclosed, reasonable) {
+    $("target").classList.remove("missed");
+    void $("target").offsetWidth;
+    $("target").classList.add("missed");
 
-  // Restore the operative's previous position and mission progress.
-  updateUI();
+    let message;
 
-  if (state.deployed) {
-    $("operative").classList.add("deployed");
-    speak("Operative T-01 is back on duty. I trust the world has behaved itself.", 7000);
+    if (!closed) {
+      message = "CLOSE THE LOOP";
+    } else if (!enclosed) {
+      message = "YOU MISSED!";
+    } else if (!reasonable) {
+      message = "A LITTLE MORE PRECISELY!";
+    } else {
+      message = "NOT QUITE!";
+    }
+
+    showFeedback(message, "THE EMOJI IS STILL AT LARGE");
+
+    playMissSound();
+
+    setTimeout(() => {
+      clearCanvas();
+      $("feedback").classList.remove("show");
+      $("target").classList.remove("missed");
+    }, 800);
   }
 
-  // Briefing appears on first visit.
-  if (!localStorage.getItem("noel_briefing_seen_v1")) {
-    setTimeout(() => openModal("briefingModal"), 500);
-    localStorage.setItem("noel_briefing_seen_v1", "yes");
+  function showFeedback(title, subtitle) {
+    $("feedbackTitle").textContent = title;
+    $("feedbackSub").textContent = subtitle;
+    $("feedback").classList.add("show");
+
+    clearTimeout(state.feedbackTimer);
+    state.feedbackTimer = setTimeout(() => {
+      $("feedback").classList.remove("show");
+    }, 1500);
   }
+
+  function finishGame() {
+    state.phase = "victory";
+    clearTimeout(state.scanTimer);
+    clearCanvas();
+
+    $("target").classList.remove("visible");
+    $("scanMessage").classList.remove("visible");
+    $("feedback").classList.remove("show");
+
+    $("victoryCollection").innerHTML = characters.map(character => `
+      <div class="victory-item">
+        <div class="emoji">${character.emoji}</div>
+        <div class="name">${character.name}</div>
+      </div>
+    `).join("");
+
+    playVictorySound();
+
+    setTimeout(() => {
+      showScreen("victoryScreen");
+    }, 300);
+  }
+
+  // Tiny synthesised sound effects. No downloaded audio files required.
+  let audioContext = null;
+
+  function soundContext() {
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) return null;
+
+      if (!audioContext) audioContext = new Audio();
+
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      return audioContext;
+    } catch {
+      return null;
+    }
+  }
+
+  function tone(frequency, duration, type = "sine", volume = .07, delay = 0) {
+    const ac = soundContext();
+    if (!ac) return;
+
+    const oscillator = ac.createOscillator();
+    const gain = ac.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, ac.currentTime + delay);
+
+    gain.gain.setValueAtTime(0, ac.currentTime + delay);
+    gain.gain.linearRampToValueAtTime(volume, ac.currentTime + delay + .015);
+    gain.gain.exponentialRampToValueAtTime(.001, ac.currentTime + delay + duration);
+
+    oscillator.connect(gain);
+    gain.connect(ac.destination);
+
+    oscillator.start(ac.currentTime + delay);
+    oscillator.stop(ac.currentTime + delay + duration + .04);
+  }
+
+  function playAppearSound() {
+    tone(520, .16, "sine", .035);
+    tone(780, .2, "sine", .035, .1);
+  }
+
+  function playCaptureSound() {
+    tone(440, .2, "sine", .07);
+    tone(660, .22, "sine", .065, .1);
+    tone(880, .3, "sine", .07, .2);
+    tone(1320, .4, "triangle", .045, .32);
+  }
+
+  function playMissSound() {
+    tone(220, .18, "triangle", .04);
+    tone(180, .2, "triangle", .035, .1);
+  }
+
+  function playVictorySound() {
+    tone(523, .25, "sine", .06);
+    tone(659, .25, "sine", .06, .16);
+    tone(784, .3, "sine", .06, .32);
+    tone(1047, .55, "sine", .07, .52);
+  }
+
+  // Initialise the collection and canvas.
+  renderCollection();
 
 })();
 </script>
