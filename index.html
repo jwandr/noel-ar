@@ -6,21 +6,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#081522">
 <title>N.O.E.L. — Emoji Hunt</title>
-
 <style>
 :root {
   --gold: #ffd36a;
   --cyan: #69e6ed;
   --dark: #081522;
   --panel: rgba(5,17,29,.88);
+  --viewport-height: 100dvh;
 }
-
 * { box-sizing: border-box; }
-
 html, body {
   margin: 0;
   width: 100%;
   height: 100%;
+  height: var(--viewport-height);
   overflow: hidden;
   background: var(--dark);
   color: white;
@@ -29,13 +28,9 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
 }
-
 button { font: inherit; cursor: pointer; }
 
-/* =================================================
-   BACKGROUND AND CAMERA
-   ================================================= */
-
+/* BACKGROUND AND CAMERA */
 #fallback {
   position: fixed;
   inset: 0;
@@ -43,7 +38,6 @@ button { font: inherit; cursor: pointer; }
   background:
     radial-gradient(ellipse at 50% 45%, #21475b 0%, #102b3e 35%, #081522 75%);
 }
-
 #fallback::before {
   content: "✦      ·       ✧        ·       ✦";
   position: absolute;
@@ -54,19 +48,22 @@ button { font: inherit; cursor: pointer; }
   letter-spacing: 18px;
   font-size: 22px;
 }
-
 #camera {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: var(--viewport-height);
+  min-width: 100%;
+  min-height: 100%;
   z-index: 1;
-  width: 100%;
-  height: 100%;
   object-fit: cover;
+  object-position: center center;
   display: none;
-  transform: none;
+  transform: translateZ(0);
   background: var(--dark);
 }
-
 #cameraShade {
   position: fixed;
   inset: 0;
@@ -80,41 +77,29 @@ button { font: inherit; cursor: pointer; }
   pointer-events: none;
 }
 
-/* =================================================
-   YOUR FULL-SCREEN SURROUND ARTWORK
-
-   Replace surround.png with your own filename.
-   This remains visible on every screen.
-   ================================================= */
-
+/* FULL-SCREEN SURROUND */
 #screen-surround {
   position: fixed;
   inset: 0;
   z-index: 10;
   width: 100%;
-  height: 100%;
+  height: var(--viewport-height);
   object-fit: fill;
   pointer-events: none;
 }
 
-/* =================================================
-   MAIN APP
-   ================================================= */
-
+/* MAIN APP */
 #app {
   position: fixed;
   inset: 0;
   z-index: 20;
   width: 100%;
   height: 100%;
-  height: 100dvh;
+  height: var(--viewport-height);
   overflow: hidden;
 }
 
-/* =================================================
-   GENERAL SCREENS
-   ================================================= */
-
+/* GENERAL SCREENS */
 .screen {
   position: absolute;
   inset: 0;
@@ -128,11 +113,7 @@ button { font: inherit; cursor: pointer; }
   text-align: center;
   background: rgba(6,19,31,.77);
 }
-
-.screen.active {
-  display: flex;
-}
-
+.screen.active { display: flex; }
 .screen h1 {
   font-size: 38px;
   line-height: 1.05;
@@ -140,20 +121,17 @@ button { font: inherit; cursor: pointer; }
   letter-spacing: 3px;
   color: var(--gold);
 }
-
 .screen h2 {
   font-size: 26px;
   color: var(--gold);
   margin: 0 0 12px;
 }
-
 .screen p {
   line-height: 1.55;
   font-size: 14px;
   max-width: 310px;
   opacity: .9;
 }
-
 .primary {
   border: 0;
   border-radius: 30px;
@@ -166,7 +144,6 @@ button { font: inherit; cursor: pointer; }
   font-size: 14px;
   box-shadow: 0 5px 25px rgba(255,190,67,.25);
 }
-
 .secondary {
   border: 1px solid rgba(255,255,255,.4);
   background: rgba(255,255,255,.08);
@@ -176,17 +153,13 @@ button { font: inherit; cursor: pointer; }
   margin-top: 12px;
   font-size: 12px;
 }
-
 .smallprint {
   font-size: 10px !important;
   opacity: .6 !important;
   margin-top: 22px;
 }
 
-/* =================================================
-   OPENING SCREEN
-   ================================================= */
-
+/* OPENING SCREEN */
 #logo {
   width: min(55vw, 220px);
   height: auto;
@@ -194,30 +167,19 @@ button { font: inherit; cursor: pointer; }
   object-fit: contain;
   margin-bottom: 24px;
 }
+#opening-screen p { max-width: 290px; }
 
-#opening-screen p {
-  max-width: 290px;
-}
-
-/* =================================================
-   CASE FILE SELECTION
-   ================================================= */
-
+/* CASE FILE SELECTION */
 #case-screen {
   justify-content: flex-start;
   padding-top: max(65px, calc(env(safe-area-inset-top) + 35px));
 }
-
-#case-screen h2 {
-  margin-bottom: 7px;
-}
-
+#case-screen h2 { margin-bottom: 7px; }
 .case-intro {
   margin: 0 0 22px;
   font-size: 12px !important;
   opacity: .75 !important;
 }
-
 #case-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -225,7 +187,6 @@ button { font: inherit; cursor: pointer; }
   width: 100%;
   max-width: 380px;
 }
-
 .case-choice {
   min-height: 108px;
   padding: 13px 8px;
@@ -240,38 +201,28 @@ button { font: inherit; cursor: pointer; }
   gap: 7px;
   box-shadow: 0 5px 18px rgba(0,0,0,.2);
 }
-
 .case-choice:active {
   background: rgba(255,211,106,.2);
   transform: scale(.97);
 }
-
 .case-code {
   font-size: 10px;
   letter-spacing: 3px;
   color: var(--gold);
   font-weight: 900;
 }
-
 .case-name {
   font-size: 14px;
   font-weight: 700;
 }
 
-/* =================================================
-   GAME ELEMENTS
-   ================================================= */
-
+/* GAME ELEMENTS */
 #game-ui {
   position: absolute;
   inset: 0;
   display: none;
 }
-
-#game-ui.active {
-  display: block;
-}
-
+#game-ui.active { display: block; }
 #scanLine {
   position: absolute;
   z-index: 2;
@@ -284,12 +235,10 @@ button { font: inherit; cursor: pointer; }
   box-shadow: 0 0 15px var(--cyan);
   animation: scan 2.1s linear infinite;
 }
-
 @keyframes scan {
   from { top: 20%; }
   to { top: 78%; }
 }
-
 #target {
   position: absolute;
   z-index: 3;
@@ -309,7 +258,6 @@ button { font: inherit; cursor: pointer; }
   animation: targetAppear .55s ease-out, targetFloat 2.5s ease-in-out infinite;
   pointer-events: none;
 }
-
 #target::before {
   content: "";
   position: absolute;
@@ -318,7 +266,6 @@ button { font: inherit; cursor: pointer; }
   border-radius: 50%;
   animation: ring 2s linear infinite;
 }
-
 #target::after {
   content: "";
   position: absolute;
@@ -326,26 +273,21 @@ button { font: inherit; cursor: pointer; }
   border: 1px solid rgba(105,230,237,.3);
   border-radius: 50%;
 }
-
 @keyframes targetAppear {
   from { transform: scale(.1); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-
 @keyframes targetFloat {
   0%,100% { margin-top: 0; }
   50% { margin-top: -8px; }
 }
-
 @keyframes ring {
   from { transform: scale(.85); opacity: .8; }
   to { transform: scale(1.3); opacity: 0; }
 }
-
 #target.captured {
   animation: capture .55s ease-in forwards;
 }
-
 @keyframes capture {
   to {
     transform: scale(.05);
@@ -354,10 +296,7 @@ button { font: inherit; cursor: pointer; }
   }
 }
 
-/* =================================================
-   GOLDEN BALL LAUNCHER
-   ================================================= */
-
+/* GOLDEN BALL LAUNCHER */
 #launcherArea {
   position: absolute;
   z-index: 8;
@@ -371,7 +310,6 @@ button { font: inherit; cursor: pointer; }
   justify-content: flex-end;
   pointer-events: none;
 }
-
 #throwHint {
   font-size: 11px;
   font-weight: 800;
@@ -380,7 +318,6 @@ button { font: inherit; cursor: pointer; }
   margin-bottom: 13px;
   text-shadow: 0 2px 8px #000;
 }
-
 #ballLauncher {
   pointer-events: auto;
   width: 76px;
@@ -405,7 +342,6 @@ button { font: inherit; cursor: pointer; }
   cursor: grab;
   display: none;
 }
-
 #ballLauncher::before {
   content: "";
   position: absolute;
@@ -417,7 +353,6 @@ button { font: inherit; cursor: pointer; }
   border-top: 2px solid rgba(110,62,13,.5);
   border-bottom: 2px solid rgba(110,62,13,.5);
 }
-
 #ballLauncher::after {
   content: "";
   position: absolute;
@@ -430,25 +365,17 @@ button { font: inherit; cursor: pointer; }
   top: 25px;
   box-shadow: 0 0 7px rgba(255,255,255,.7);
 }
-
-#ballLauncher.ready {
-  animation: ballPulse 1.8s ease-in-out infinite;
-}
-
+#ballLauncher.ready { animation: ballPulse 1.8s ease-in-out infinite; }
 @keyframes ballPulse {
   0%,100% { transform: scale(1); }
   50% { transform: scale(1.07); }
 }
-
 #ballLauncher.dragging {
   animation: none;
   transform: scale(.92);
 }
 
-/* =================================================
-   AIMING AND PROJECTILE
-   ================================================= */
-
+/* AIMING AND PROJECTILE */
 #aimCanvas {
   position: absolute;
   inset: 0;
@@ -457,7 +384,6 @@ button { font: inherit; cursor: pointer; }
   height: 100%;
   pointer-events: none;
 }
-
 #projectile {
   position: absolute;
   z-index: 9;
@@ -470,7 +396,6 @@ button { font: inherit; cursor: pointer; }
   box-shadow: 0 0 18px 7px rgba(255,198,70,.45);
   pointer-events: none;
 }
-
 #projectile::after {
   content: "";
   position: absolute;
@@ -483,10 +408,7 @@ button { font: inherit; cursor: pointer; }
   border-bottom: 1px solid #a96c1c;
 }
 
-/* =================================================
-   TOAST AND CAMERA CONTROL
-   ================================================= */
-
+/* TOAST AND CAMERA CONTROL */
 #toast {
   position: absolute;
   z-index: 10;
@@ -502,18 +424,13 @@ button { font: inherit; cursor: pointer; }
   transform: scale(.8);
   pointer-events: none;
 }
-
-#toast.show {
-  animation: toast 1.1s ease-out forwards;
-}
-
+#toast.show { animation: toast 1.1s ease-out forwards; }
 @keyframes toast {
   0% { opacity: 0; transform: scale(.8); }
   20% { opacity: 1; transform: scale(1.08); }
   70% { opacity: 1; transform: scale(1); }
   100% { opacity: 0; transform: scale(1); }
 }
-
 #cameraToggle {
   position: absolute;
   z-index: 11;
@@ -528,20 +445,13 @@ button { font: inherit; cursor: pointer; }
   display: none;
 }
 
-/* =================================================
-   CAPTURE CONFIRMATION
-   ================================================= */
-
-#capture-screen {
-  background: rgba(6,19,31,.88);
-}
-
+/* CAPTURE CONFIRMATION */
+#capture-screen { background: rgba(6,19,31,.88); }
 .capture-emoji {
   font-size: 100px;
   margin: 15px 0;
   filter: drop-shadow(0 0 20px rgba(255,211,106,.4));
 }
-
 .capture-key {
   margin: 15px 0;
   padding: 12px 25px;
@@ -549,35 +459,23 @@ button { font: inherit; cursor: pointer; }
   border-radius: 12px;
   background: rgba(255,255,255,.06);
 }
-
 .capture-key .key {
   font-size: 40px;
   margin-top: 5px;
 }
-
 #copy-key {
   font-size: 11px;
   padding: 10px 18px;
   margin-top: 5px;
 }
 
-/* =================================================
-   RESPONSIVE LAYOUT
-   ================================================= */
-
+/* RESPONSIVE LAYOUT */
 @media (max-height: 700px) {
   #case-screen {
     padding-top: max(40px, env(safe-area-inset-top));
   }
-
-  .case-choice {
-    min-height: 88px;
-  }
-
-  #case-list {
-    gap: 8px;
-  }
-
+  .case-choice { min-height: 88px; }
+  #case-list { gap: 8px; }
   #logo {
     width: min(43vw, 170px);
     margin-bottom: 15px;
@@ -585,167 +483,90 @@ button { font: inherit; cursor: pointer; }
 }
 </style>
 </head>
-
 <body>
-
 <div id="fallback"></div>
-
 <video id="camera" autoplay muted playsinline></video>
-
 <div id="cameraShade"></div>
-
-<!-- YOUR SURROUND IMAGE: visible on every screen -->
 <img id="screen-surround" src="surround.png" alt="">
 
 <div id="app">
-
-  <!-- =============================================
-       OPENING SCREEN
-       ============================================= -->
-
   <section class="screen active" id="startScreen">
-
-    <!-- YOUR SQUARE LOGO -->
     <img id="logo" src="logo.png" alt="N.O.E.L.">
-
     <h1>N.O.E.L.</h1>
-
     <p><strong>The Great Emoji Hunt</strong></p>
-
     <p>
       Six rogue emojis are waiting to be found.
       Choose your case file and get hunting.
     </p>
-
-    <button class="primary" id="startButton">
-      OPEN CASE FILES
-    </button>
-
-    <p class="smallprint">
-      Best played in a safe, open space.
-    </p>
-
+    <button class="primary" id="startButton">OPEN CASE FILES</button>
+    <p class="smallprint">Best played in a safe, open space.</p>
   </section>
 
-
-  <!-- =============================================
-       CASE FILE SELECTION
-       ============================================= -->
-
   <section class="screen" id="caseScreen">
-
     <h2>CASE FILES</h2>
-
     <p class="case-intro">Select your next assignment.</p>
-
     <div id="case-list">
-
       <button class="case-choice" data-id="telescope">
         <span class="case-code">TEL</span>
         <span class="case-name">Telescope</span>
       </button>
-
       <button class="case-choice" data-id="detective">
         <span class="case-code">DET</span>
         <span class="case-name">Detective</span>
       </button>
-
       <button class="case-choice" data-id="croissant">
         <span class="case-code">CRO</span>
         <span class="case-name">Croissant</span>
       </button>
-
       <button class="case-choice" data-id="sloth">
         <span class="case-code">SLO</span>
         <span class="case-name">Sloth</span>
       </button>
-
       <button class="case-choice" data-id="palette">
         <span class="case-code">PAL</span>
         <span class="case-name">Palette</span>
       </button>
-
       <button class="case-choice" data-id="train">
         <span class="case-code">TRN</span>
         <span class="case-name">Train</span>
       </button>
-
     </div>
-
   </section>
 
-
-  <!-- =============================================
-       GAME SCREEN
-       ============================================= -->
-
   <div id="game-ui">
-
     <div id="scanLine"></div>
-
     <div id="target"></div>
-
     <canvas id="aimCanvas"></canvas>
-
     <div id="projectile"></div>
-
     <div id="toast"></div>
-
     <div id="launcherArea">
       <div id="throwHint">SWIPE UP TO THROW</div>
       <div id="ballLauncher"></div>
     </div>
-
     <button id="cameraToggle">CAMERA: ON</button>
-
   </div>
 
-
-  <!-- =============================================
-       CAPTURE CONFIRMATION
-       ============================================= -->
-
   <section class="screen" id="capture-screen">
-
     <div class="eyebrow" style="color:var(--gold);letter-spacing:3px;font-size:11px">
       N.O.E.L. · CAPTURE CONFIRMED
     </div>
-
     <h2>WELL CAPTURED!</h2>
-
     <div class="capture-emoji" id="capture-emoji">🔭</div>
-
     <p id="capture-name">Telescope successfully captured.</p>
-
     <div class="capture-key">
       <div style="font-size:10px;letter-spacing:2px;color:var(--gold)">
         YOUR EMOJI KEY
       </div>
       <div class="key" id="capture-key">🔭</div>
     </div>
-
-    <button class="secondary" id="copy-key">
-      COPY EMOJI KEY
-    </button>
-
-    <button class="primary" id="return-cases">
-      RETURN TO CASE FILES
-    </button>
-
+    <button class="secondary" id="copy-key">COPY EMOJI KEY</button>
+    <button class="primary" id="return-cases">RETURN TO CASE FILES</button>
   </section>
-
 </div>
-
 
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-
-  /* =============================================
-     CASE FILES AND EMOJI ASSIGNMENTS
-
-     Change the three-letter codes here if desired.
-     ============================================= */
 
   const characters = [
     {id:"telescope", code:"TEL", emoji:"🔭", name:"Telescope"},
@@ -765,6 +586,7 @@ button { font: inherit; cursor: pointer; }
   let scanTimer = null;
   let gameToken = 0;
   let cameraWanted = false;
+  let cameraStarting = false;
 
   const video = $("camera");
   const target = $("target");
@@ -773,18 +595,16 @@ button { font: inherit; cursor: pointer; }
   const canvas = $("aimCanvas");
   const ctx = canvas.getContext("2d");
 
-  /* =============================================
-     SCREEN NAVIGATION
-     ============================================= */
-
+  /* SCREEN NAVIGATION */
   function showScreen(screenId) {
     document.querySelectorAll(".screen").forEach(screen => {
       screen.classList.remove("active");
     });
-
     if (screenId) $(screenId).classList.add("active");
-
     $("game-ui").classList.toggle("active", screenId === null);
+
+    // Keep the camera crop in step with the visible screen.
+    scheduleViewportRefresh();
   }
 
   $("startButton").addEventListener("click", () => {
@@ -794,10 +614,8 @@ button { font: inherit; cursor: pointer; }
   $("case-list").addEventListener("click", event => {
     const button = event.target.closest(".case-choice");
     if (!button) return;
-
     current = characters.find(character => character.id === button.dataset.id);
     if (!current) return;
-
     startCase();
   });
 
@@ -808,157 +626,191 @@ button { font: inherit; cursor: pointer; }
     $("scanLine").style.display = "none";
     $("capture-screen").classList.remove("active");
     showScreen("caseScreen");
-
     phase = "case-selection";
+    scheduleViewportRefresh();
   });
 
-
-  /* =============================================
-     SOUND EFFECTS
-     ============================================= */
-
+  /* SOUND EFFECTS */
   function sound(frequency=440, duration=.12, type="sine") {
     try {
       audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
-
-      if (audioContext.state === "suspended") {
-        audioContext.resume();
-      }
+      if (audioContext.state === "suspended") audioContext.resume();
 
       const osc = audioContext.createOscillator();
       const gain = audioContext.createGain();
-
       osc.type = type;
       osc.frequency.value = frequency;
-
       gain.gain.setValueAtTime(.12, audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(
         .001,
         audioContext.currentTime + duration
       );
-
       osc.connect(gain);
       gain.connect(audioContext.destination);
-
       osc.start();
       osc.stop(audioContext.currentTime + duration);
     } catch(e) {}
   }
 
+  /* VIEWPORT AND CAMERA LAYOUT
+     Use visualViewport when available. On iPhone Safari,
+     window.innerHeight can lag behind the actual visible area.
+  */
+  function getViewportSize() {
+    const vv = window.visualViewport;
 
-  /* =============================================
-     RESPONSIVE CANVAS
-
-     Recalculate after orientation changes and
-     when Safari returns from the background.
-     ============================================= */
+    return {
+      width: Math.round(vv ? vv.width : window.innerWidth),
+      height: Math.round(vv ? vv.height : window.innerHeight),
+      top: Math.round(vv ? vv.offsetTop : 0),
+      left: Math.round(vv ? vv.offsetLeft : 0)
+    };
+  }
 
   function resizeCanvas() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const size = getViewportSize();
     const dpr = window.devicePixelRatio || 1;
 
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
+    canvas.width = Math.round(size.width * dpr);
+    canvas.height = Math.round(size.height * dpr);
+    canvas.style.width = size.width + "px";
+    canvas.style.height = size.height + "px";
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
     clearAim();
   }
 
   function refreshViewport() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const size = getViewportSize();
 
-    video.style.width = width + "px";
-    video.style.height = height + "px";
+    // Update the shared app height as well as the camera.
+    document.documentElement.style.setProperty(
+      "--viewport-height",
+      size.height + "px"
+    );
+
+    // Explicit dimensions prevent Safari retaining an old video size.
+    video.style.position = "fixed";
+    video.style.left = size.left + "px";
+    video.style.top = size.top + "px";
+    video.style.width = size.width + "px";
+    video.style.height = size.height + "px";
+    video.style.minWidth = size.width + "px";
+    video.style.minHeight = size.height + "px";
+    video.style.objectFit = "cover";
+    video.style.objectPosition = "center center";
 
     resizeCanvas();
 
-    // Recalculate the camera's visible dimensions.
-    video.style.objectFit = "cover";
+    // Force a layout read so WebKit applies the new dimensions.
+    void video.offsetHeight;
   }
 
-  window.addEventListener("resize", refreshViewport);
+  let refreshFrame1 = null;
+  let refreshFrame2 = null;
+
+  function scheduleViewportRefresh() {
+    cancelAnimationFrame(refreshFrame1);
+    cancelAnimationFrame(refreshFrame2);
+
+    refreshFrame1 = requestAnimationFrame(() => {
+      refreshViewport();
+
+      refreshFrame2 = requestAnimationFrame(() => {
+        refreshViewport();
+      });
+    });
+  }
+
+  window.addEventListener("resize", scheduleViewportRefresh);
+
   window.addEventListener("orientationchange", () => {
-    setTimeout(refreshViewport, 250);
-    setTimeout(refreshViewport, 800);
+    setTimeout(scheduleViewportRefresh, 150);
+    setTimeout(scheduleViewportRefresh, 500);
+    setTimeout(scheduleViewportRefresh, 1000);
   });
 
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", refreshViewport);
+    window.visualViewport.addEventListener("resize", scheduleViewportRefresh);
+    window.visualViewport.addEventListener("scroll", scheduleViewportRefresh);
   }
 
   refreshViewport();
 
-
-  /* =============================================
-     CAMERA
-
+  /* CAMERA
      Keep the stream alive between case files.
-     Restart it when Safari resumes if necessary.
-     ============================================= */
-
+     Reuse the existing stream wherever possible.
+  */
   async function enableCamera() {
     cameraWanted = true;
 
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
+    if (cameraStarting) return false;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       $("fallback").style.display = "block";
       return false;
     }
 
-    // Reuse an existing live stream rather than
-    // requesting camera access again.
-    if (cameraStream &&
-        cameraStream.getVideoTracks().some(track => track.readyState === "live")) {
+    const hasLiveTrack = cameraStream &&
+      cameraStream.getVideoTracks().some(track => track.readyState === "live");
 
+    if (hasLiveTrack) {
       video.srcObject = cameraStream;
       video.style.display = "block";
-
-      refreshViewport();
+      scheduleViewportRefresh();
 
       try {
         await video.play();
-      } catch(e) {}
+      } catch(e) {
+        $("cameraToggle").textContent = "TAP TO RESUME CAMERA";
+      }
 
       $("fallback").style.display = "none";
-      $("cameraToggle").textContent = "CAMERA: ON";
-
+      if (video.paused === false) {
+        $("cameraToggle").textContent = "CAMERA: ON";
+      }
+      scheduleViewportRefresh();
       return true;
     }
 
+    cameraStarting = true;
+
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" }
-        },
+        video: { facingMode: { ideal: "environment" } },
         audio: false
       });
 
       video.srcObject = cameraStream;
       video.style.display = "block";
 
-      refreshViewport();
+      await new Promise(resolve => {
+        if (video.readyState >= 1) {
+          resolve();
+        } else {
+          video.addEventListener("loadedmetadata", resolve, { once: true });
+        }
+      });
 
+      scheduleViewportRefresh();
       await video.play();
 
       $("fallback").style.display = "none";
       $("cameraToggle").textContent = "CAMERA: ON";
 
-      return true;
+      // One more refresh after the video has begun rendering.
+      setTimeout(scheduleViewportRefresh, 150);
+      setTimeout(scheduleViewportRefresh, 500);
 
+      return true;
     } catch(e) {
       video.style.display = "none";
       $("fallback").style.display = "block";
       $("cameraToggle").textContent = "CAMERA: OFF";
-
       console.warn("Camera unavailable:", e);
-
       return false;
+    } finally {
+      cameraStarting = false;
     }
   }
 
@@ -972,13 +824,12 @@ button { font: inherit; cursor: pointer; }
 
     video.srcObject = null;
     video.style.display = "none";
-
     $("fallback").style.display = "block";
     $("cameraToggle").textContent = "CAMERA: OFF";
   }
 
   async function resumeCameraIfNeeded() {
-    refreshViewport();
+    scheduleViewportRefresh();
 
     if (!cameraWanted) return;
 
@@ -996,17 +847,32 @@ button { font: inherit; cursor: pointer; }
 
     try {
       await video.play();
+      $("cameraToggle").textContent = "CAMERA: ON";
     } catch(e) {
       // iOS may require a user tap to resume playback.
       $("cameraToggle").textContent = "TAP TO RESUME CAMERA";
     }
 
-    refreshViewport();
+    scheduleViewportRefresh();
+    setTimeout(scheduleViewportRefresh, 200);
+    setTimeout(scheduleViewportRefresh, 700);
   }
 
   $("cameraToggle").addEventListener("click", async () => {
     if (cameraWanted) {
-      stopCamera();
+      const hasLiveTrack = cameraStream &&
+        cameraStream.getVideoTracks().some(track => track.readyState === "live");
+
+      if (hasLiveTrack) {
+        try {
+          await video.play();
+          $("cameraToggle").textContent = "CAMERA: ON";
+          scheduleViewportRefresh();
+          return;
+        } catch(e) {}
+      }
+
+      await enableCamera();
     } else {
       await enableCamera();
     }
@@ -1015,22 +881,19 @@ button { font: inherit; cursor: pointer; }
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       setTimeout(resumeCameraIfNeeded, 150);
+      setTimeout(scheduleViewportRefresh, 250);
     }
   });
 
   window.addEventListener("pageshow", () => {
     setTimeout(resumeCameraIfNeeded, 200);
+    setTimeout(scheduleViewportRefresh, 350);
   });
 
-
-  /* =============================================
-     GAME START
-     ============================================= */
-
+  /* GAME START */
   function startCase() {
     gameToken++;
     clearTimeout(scanTimer);
-
     phase = "scanning";
 
     $("capture-screen").classList.remove("active");
@@ -1038,28 +901,26 @@ button { font: inherit; cursor: pointer; }
 
     target.style.display = "none";
     setBallVisible(false);
-
     $("scanLine").style.display = "block";
     $("cameraToggle").style.display = "block";
 
-    enableCamera();
+    // Refresh immediately and again after Safari has laid out the game.
+    scheduleViewportRefresh();
+    enableCamera().then(() => {
+      scheduleViewportRefresh();
+      setTimeout(scheduleViewportRefresh, 250);
+    });
 
     scanForTarget(gameToken);
   }
 
-
-  /* =============================================
-     SCANNING AND TARGET APPEARANCE
-     ============================================= */
-
+  /* SCANNING AND TARGET APPEARANCE */
   function scanForTarget(token) {
     if (token !== gameToken || phase === "won") return;
 
     phase = "scanning";
-
     target.style.display = "none";
     setBallVisible(false);
-
     $("scanLine").style.display = "block";
 
     sound(330, .08);
@@ -1078,49 +939,35 @@ button { font: inherit; cursor: pointer; }
     phase = "target";
     $("scanLine").style.display = "none";
 
+    const size = getViewportSize();
     const marginX = 75;
-    const minY = Math.max(190, window.innerHeight * .25);
-    const maxY = Math.min(window.innerHeight - 260, window.innerHeight * .65);
-
-    const x = marginX + Math.random() * (window.innerWidth - marginX * 2);
+    const minY = Math.max(190, size.height * .25);
+    const maxY = Math.min(size.height - 260, size.height * .65);
+    const x = marginX + Math.random() * (size.width - marginX * 2);
     const y = minY + Math.random() * Math.max(10, maxY - minY);
 
     target.style.left = (x - 52) + "px";
     target.style.top = (y - 52) + "px";
-
     target.textContent = current.emoji;
-
     target.classList.remove("captured");
     target.style.display = "flex";
 
     setBallVisible(true);
-
     showToast("TARGET SPOTTED!");
-
     sound(620, .13);
     setTimeout(() => sound(880, .12), 120);
   }
 
-
-  /* =============================================
-     BALL VISIBILITY
-     ============================================= */
-
+  /* BALL VISIBILITY */
   function setBallVisible(visible) {
     ball.style.display = visible ? "block" : "none";
     ball.classList.toggle("ready", visible);
-
     $("throwHint").style.display = visible ? "block" : "none";
   }
 
-
-  /* =============================================
-     AIMING
-     ============================================= */
-
+  /* AIMING */
   function getBallCentre() {
     const rect = ball.getBoundingClientRect();
-
     return {
       x: rect.left + rect.width / 2,
       y: rect.top + rect.height / 2
@@ -1128,57 +975,50 @@ button { font: inherit; cursor: pointer; }
   }
 
   function drawAim(x1, y1, x2, y2) {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const size = getViewportSize();
+    ctx.clearRect(0, 0, size.width, size.height);
 
     const dx = x2 - x1;
     const dy = y2 - y1;
     const length = Math.hypot(dx, dy);
-
     if (length < 5) return;
 
     const endX = x1 + dx * 1.5;
     const endY = y1 + dy * 1.5;
 
     ctx.save();
-
     ctx.setLineDash([7,9]);
     ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(255,211,106,.85)";
     ctx.shadowColor = "#ffd36a";
     ctx.shadowBlur = 12;
-
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(endX, endY);
     ctx.stroke();
-
     ctx.setLineDash([]);
     ctx.restore();
   }
 
   function clearAim() {
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const size = getViewportSize();
+    ctx.clearRect(0, 0, size.width, size.height);
   }
 
   ball.addEventListener("pointerdown", event => {
     if (phase !== "target" || isDragging) return;
 
     event.preventDefault();
-
     isDragging = true;
     pointerStart = getBallCentre();
-
     ball.classList.add("dragging");
     ball.setPointerCapture(event.pointerId);
-
     drawAim(pointerStart.x, pointerStart.y, event.clientX, event.clientY);
   });
 
   ball.addEventListener("pointermove", event => {
     if (!isDragging || !pointerStart) return;
-
     event.preventDefault();
-
     drawAim(pointerStart.x, pointerStart.y, event.clientX, event.clientY);
   });
 
@@ -1187,10 +1027,7 @@ button { font: inherit; cursor: pointer; }
 
     event.preventDefault();
 
-    const end = {
-      x: event.clientX,
-      y: event.clientY
-    };
+    const end = { x: event.clientX, y: event.clientY };
 
     isDragging = false;
     ball.classList.remove("dragging");
@@ -1202,12 +1039,14 @@ button { font: inherit; cursor: pointer; }
 
     if (distance < 35) {
       showToast("SWIPE TO THROW!");
+      pointerStart = null;
       return;
     }
 
     if (dy > -15) {
       showToast("AIM UPWARDS!");
       sound(180, .1);
+      pointerStart = null;
       return;
     }
 
@@ -1218,39 +1057,29 @@ button { font: inherit; cursor: pointer; }
   ball.addEventListener("pointercancel", () => {
     isDragging = false;
     pointerStart = null;
-
     ball.classList.remove("dragging");
     clearAim();
   });
 
-
-  /* =============================================
-     PROJECTILE AND HIT DETECTION
-     ============================================= */
-
+  /* PROJECTILE AND HIT DETECTION */
   function throwBall(start, end) {
     if (phase !== "target" || !current) return;
 
     phase = "throwing";
     setBallVisible(false);
-
     sound(260, .1, "triangle");
 
     const targetRect = target.getBoundingClientRect();
-
     const tx = targetRect.left + targetRect.width / 2;
     const ty = targetRect.top + targetRect.height / 2;
 
     const vx = end.x - start.x;
     const vy = end.y - start.y;
-
     const swipeLength = Math.hypot(vx, vy);
-
     const ux = vx / swipeLength;
     const uy = vy / swipeLength;
 
     const travel = Math.max(220, Math.min(850, swipeLength * 2.8));
-
     const finish = {
       x: start.x + ux * travel,
       y: start.y + uy * travel
@@ -1258,19 +1087,14 @@ button { font: inherit; cursor: pointer; }
 
     const px = tx - start.x;
     const py = ty - start.y;
-
     const projection = px * ux + py * uy;
-
     const closestX = start.x + ux * projection;
     const closestY = start.y + uy * projection;
-
     const missDistance = Math.hypot(tx - closestX, ty - closestY);
-
     const withinPath = projection > 20 && projection < travel + 45;
     const hit = withinPath && missDistance < 67;
 
     const destination = hit ? {x:tx, y:ty} : finish;
-
     animateProjectile(start, destination, hit);
   }
 
@@ -1283,15 +1107,12 @@ button { font: inherit; cursor: pointer; }
     function frame(now) {
       const t = Math.min(1, (now - started) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-
       const x = start.x + (finish.x - start.x) * eased;
       const y = start.y + (finish.y - start.y) * eased - Math.sin(t * Math.PI) * 75;
-
       const scale = 1 - .45 * t;
 
       projectile.style.left = (x - 17) + "px";
       projectile.style.top = (y - 17) + "px";
-
       projectile.style.transform =
         "scale(" + scale + ") rotate(" + (t * 720) + "deg)";
 
@@ -1299,7 +1120,6 @@ button { font: inherit; cursor: pointer; }
         requestAnimationFrame(frame);
       } else {
         projectile.style.display = "none";
-
         if (hit) captureTarget();
         else missTarget();
       }
@@ -1308,16 +1128,11 @@ button { font: inherit; cursor: pointer; }
     requestAnimationFrame(frame);
   }
 
-
-  /* =============================================
-     CAPTURE
-     ============================================= */
-
+  /* CAPTURE */
   function captureTarget() {
     if (phase !== "throwing" || !current) return;
 
     phase = "captured";
-
     target.classList.add("captured");
 
     sound(520, .13, "sine");
@@ -1325,13 +1140,11 @@ button { font: inherit; cursor: pointer; }
     setTimeout(() => sound(1040, .25, "sine"), 220);
 
     showToast("CAPTURED!");
-
     setTimeout(showCaptureScreen, 850);
   }
 
   function showCaptureScreen() {
     clearTimeout(scanTimer);
-
     target.style.display = "none";
     setBallVisible(false);
     $("scanLine").style.display = "none";
@@ -1341,8 +1154,8 @@ button { font: inherit; cursor: pointer; }
     $("capture-name").textContent = current.name + " successfully captured.";
 
     phase = "captured";
-
     showScreen("capture-screen");
+    scheduleViewportRefresh();
   }
 
   $("copy-key").addEventListener("click", async () => {
@@ -1354,51 +1167,29 @@ button { font: inherit; cursor: pointer; }
     }
   });
 
-
-  /* =============================================
-     MISSED THROW
-     ============================================= */
-
+  /* MISSED THROW */
   function missTarget() {
     if (phase !== "throwing") return;
 
     phase = "target";
-
     setBallVisible(true);
-
     showToast("MISSED! TRY AGAIN");
-
     sound(180, .18, "triangle");
   }
 
-
-  /* =============================================
-     TOAST
-     ============================================= */
-
+  /* TOAST */
   function showToast(message) {
     const toast = $("toast");
-
     toast.textContent = message;
-
     toast.classList.remove("show");
-
     void toast.offsetWidth;
-
     toast.classList.add("show");
   }
 
-
-  /* =============================================
-     INITIAL STATE
-     ============================================= */
-
+  /* INITIAL STATE */
   showScreen("startScreen");
-
   $("cameraToggle").style.display = "none";
-
 })();
 </script>
-
 </body>
 </html>
