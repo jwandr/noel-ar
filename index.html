@@ -57,14 +57,11 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
-  height: 100vh;
-  height: 100dvh;
   z-index: 1;
   object-fit: cover;
   object-position: center center;
   display: none;
   background: var(--dark);
-  transform: none;
 }
 #cameraShade {
   position: fixed;
@@ -638,7 +635,16 @@ button {
     scheduleViewportRefresh();
   }
 
-  $("return-cases").addEventListener("click", returnToCases);
+  let lastReturn = 0;
+  function handleReturn(e) {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastReturn < 500) return;
+    lastReturn = now;
+    returnToCases();
+  }
+  $("return-cases").addEventListener("pointerup", handleReturn);
+  $("return-cases").addEventListener("click", handleReturn);
 
   /* SOUND EFFECTS */
   function sound(frequency=440, duration=.12, type="sine") {
@@ -687,16 +693,22 @@ button {
     clearAim();
   }
 
+  let lastW = 0, lastH = 0;
   function refreshViewport() {
-    const size = getViewportSize();
-
-    document.documentElement.style.setProperty(
-      "--viewport-height",
-      size.height + "px"
-    );
-
+    const w = window.innerWidth, h = window.innerHeight;
+    if (w === lastW && h === lastH) return;   // nothing changed, do nothing
+    lastW = w; lastH = h;
     resizeCanvas();
   }
+
+  // Forces iOS to re-lay-out the video element
+  function kickVideoLayout() {
+    video.style.width = "99.9%";
+    void video.offsetWidth;
+    video.style.width = "";
+  }
+  video.addEventListener("loadedmetadata", kickVideoLayout);
+  video.addEventListener("playing", kickVideoLayout);
 
   let refreshFrame1 = null;
   let refreshFrame2 = null;
@@ -724,7 +736,6 @@ button {
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", scheduleViewportRefresh);
-    window.visualViewport.addEventListener("scroll", scheduleViewportRefresh);
   }
 
   refreshViewport();
@@ -786,6 +797,7 @@ button {
 
       scheduleViewportRefresh();
       await video.play();
+      kickVideoLayout();
 
       $("fallback").style.display = "none";
       $("cameraToggle").textContent = "CAMERA: ON";
