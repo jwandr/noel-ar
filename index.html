@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,14 +11,12 @@
   --cyan: #69e6ed;
   --dark: #081522;
   --panel: rgba(5,17,29,.88);
-  --viewport-height: 100dvh;
 }
 * { box-sizing: border-box; }
 html, body {
   margin: 0;
   width: 100%;
   height: 100%;
-  height: var(--viewport-height);
   overflow: hidden;
   background: var(--dark);
   color: white;
@@ -54,12 +51,12 @@ button {
 }
 #camera {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
   object-fit: cover;
-  object-position: center center;
   display: none;
   background: var(--dark);
 }
@@ -82,7 +79,7 @@ button {
   inset: 0;
   z-index: 10;
   width: 100%;
-  height: var(--viewport-height);
+  height: 100%;
   object-fit: fill;
   pointer-events: none;
 }
@@ -94,7 +91,6 @@ button {
   z-index: 20;
   width: 100%;
   height: 100%;
-  height: var(--viewport-height);
   overflow: hidden;
 }
 
@@ -635,6 +631,7 @@ button {
     scheduleViewportRefresh();
   }
 
+  // Handle both pointerup and click, with a guard against double-firing.
   let lastReturn = 0;
   function handleReturn(e) {
     e.preventDefault();
@@ -668,10 +665,7 @@ button {
     } catch(e) {}
   }
 
-  /* VIEWPORT AND CAMERA LAYOUT
-     Use visualViewport when available. On iPhone Safari,
-     window.innerHeight can lag behind the actual visible area.
-  */
+  /* VIEWPORT AND CAMERA LAYOUT */
   function getViewportSize() {
     return {
       width: window.innerWidth,
@@ -701,14 +695,26 @@ button {
     resizeCanvas();
   }
 
-  // Forces iOS to re-lay-out the video element
-  function kickVideoLayout() {
-    video.style.width = "99.9%";
-    void video.offsetWidth;
-    video.style.width = "";
+  // Size the video manually ("cover" maths) from its real dimensions,
+  // so we don't depend on iOS re-applying object-fit after a stream restart.
+  function fitVideo() {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return;                       // metadata not ready yet
+    const W = window.innerWidth;
+    const H = Math.max(window.innerHeight, document.documentElement.clientHeight);
+    const scale = Math.max(W / vw, H / vh);
+    const w = Math.ceil(vw * scale);
+    const h = Math.ceil(vh * scale);
+    video.style.width  = w + "px";
+    video.style.height = h + "px";
+    video.style.left   = ((W - w) / 2) + "px";    // centre, cropping the overflow
+    video.style.top    = ((H - h) / 2) + "px";
   }
-  video.addEventListener("loadedmetadata", kickVideoLayout);
-  video.addEventListener("playing", kickVideoLayout);
+
+  ["loadedmetadata", "loadeddata", "playing", "resize"].forEach(evt =>
+    video.addEventListener(evt, fitVideo)
+  );
+  window.addEventListener("resize", fitVideo);
 
   let refreshFrame1 = null;
   let refreshFrame2 = null;
@@ -719,9 +725,11 @@ button {
 
     refreshFrame1 = requestAnimationFrame(() => {
       refreshViewport();
+      fitVideo();
 
       refreshFrame2 = requestAnimationFrame(() => {
         refreshViewport();
+        fitVideo();
       });
     });
   }
@@ -758,7 +766,7 @@ button {
       cameraStream.getVideoTracks().some(track => track.readyState === "live");
 
     if (hasLiveTrack) {
-      video.srcObject = cameraStream;
+      if (video.srcObject !== cameraStream) video.srcObject = cameraStream;
       video.style.display = "block";
       scheduleViewportRefresh();
 
@@ -768,6 +776,7 @@ button {
         $("cameraToggle").textContent = "TAP TO RESUME CAMERA";
       }
 
+      fitVideo();
       $("fallback").style.display = "none";
       if (video.paused === false) {
         $("cameraToggle").textContent = "CAMERA: ON";
@@ -797,7 +806,7 @@ button {
 
       scheduleViewportRefresh();
       await video.play();
-      kickVideoLayout();
+      fitVideo();
 
       $("fallback").style.display = "none";
       $("cameraToggle").textContent = "CAMERA: ON";
@@ -846,7 +855,7 @@ button {
       return;
     }
 
-    video.srcObject = cameraStream;
+    if (video.srcObject !== cameraStream) video.srcObject = cameraStream;
     video.style.display = "block";
 
     try {
@@ -857,6 +866,7 @@ button {
       $("cameraToggle").textContent = "TAP TO RESUME CAMERA";
     }
 
+    fitVideo();
     scheduleViewportRefresh();
     setTimeout(scheduleViewportRefresh, 200);
     setTimeout(scheduleViewportRefresh, 700);
@@ -871,6 +881,7 @@ button {
         try {
           await video.play();
           $("cameraToggle").textContent = "CAMERA: ON";
+          fitVideo();
           scheduleViewportRefresh();
           return;
         } catch(e) {}
