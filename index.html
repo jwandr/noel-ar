@@ -55,16 +55,16 @@ button {
 #camera {
   position: fixed;
   inset: 0;
-  z-index: 1;
   width: 100%;
   height: 100%;
   height: 100vh;
   height: 100dvh;
+  z-index: 1;
   object-fit: cover;
   object-position: center center;
   display: none;
-  transform: none;
   background: var(--dark);
+  transform: none;
 }
 #cameraShade {
   position: fixed;
@@ -679,6 +679,7 @@ button {
 
     canvas.width = Math.round(size.width * dpr);
     canvas.height = Math.round(size.height * dpr);
+
     canvas.style.width = size.width + "px";
     canvas.style.height = size.height + "px";
 
@@ -687,15 +688,13 @@ button {
   }
 
   function refreshViewport() {
-    const height = window.innerHeight;
+    const size = getViewportSize();
 
     document.documentElement.style.setProperty(
       "--viewport-height",
-      height + "px"
+      size.height + "px"
     );
 
-    // Let CSS handle the camera crop.
-    // Do not set inline width, height, top or left on the video.
     resizeCanvas();
   }
 
