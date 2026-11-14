@@ -441,7 +441,7 @@ button {
 }
 
 /* CAPTURE CONFIRMATION */
-#capture-screen { z-index: 3; background: rgba(6,19,31,.88); }
+#capture-screen 
 .capture-emoji {
   font-size: 100px;
   margin: 15px 0;
@@ -931,6 +931,7 @@ button {
     setBallVisible(false);
     $("scanLine").style.display = "block";
     $("cameraToggle").style.display = "block";
+    $("cameraToggle").style.display = "none";
 
     // Refresh immediately and again after Safari has laid out the game.
     scheduleViewportRefresh();
