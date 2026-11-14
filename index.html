@@ -582,6 +582,7 @@ button {
   let gameToken = 0;
   let cameraWanted = false;
   let cameraStarting = false;
+  let wanderFrame = null;
 
   const video = $("camera");
   const target = $("target");
@@ -616,6 +617,7 @@ button {
 
   function returnToCases() {
     clearTimeout(scanTimer);
+    stopWander();
     gameToken++;
     phase = "case-selection";
     target.style.display = "none";
@@ -909,6 +911,7 @@ button {
   function startCase() {
     gameToken++;
     clearTimeout(scanTimer);
+    stopWander();
     // Clear anything left over from the previous case.
     $("toast").classList.remove("show");
     $("toast").textContent = "";
@@ -972,8 +975,9 @@ button {
     const marginX = 75;
     const minY = Math.max(190, size.height * .25);
     const maxY = Math.min(size.height - 260, size.height * .65);
+    const rangeY = Math.max(10, maxY - minY);
     const x = marginX + Math.random() * (size.width - marginX * 2);
-    const y = minY + Math.random() * Math.max(10, maxY - minY);
+    const y = minY + Math.random() * rangeY;
 
     target.style.left = (x - 52) + "px";
     target.style.top = (y - 52) + "px";
@@ -981,10 +985,84 @@ button {
     target.classList.remove("captured");
     target.style.display = "flex";
 
+    startWander(x, y, {
+      minX: marginX,
+      maxX: size.width - marginX,
+      minY: minY,
+      maxY: minY + rangeY
+    });
+
     setBallVisible(true);
     showToast("TARGET SPOTTED!");
     sound(620, .13);
     setTimeout(() => sound(880, .12), 120);
+  }
+
+  /* TARGET MOVEMENT
+     The emoji drifts between nearby waypoints with smooth easing.
+     Movement pauses while the ball is in flight so the throw stays fair,
+     and resumes if the throw misses.
+  */
+  const WANDER_MIN_DIST = 50;    // px per leg
+  const WANDER_MAX_DIST = 120;
+  const WANDER_MIN_TIME = 1100;  // ms per leg
+  const WANDER_MAX_TIME = 2000;
+
+  function stopWander() {
+    cancelAnimationFrame(wanderFrame);
+    wanderFrame = null;
+  }
+
+  function startWander(startX, startY, bounds) {
+    stopWander();
+    const token = gameToken;
+
+    let x = startX, y = startY;
+    let fromX = x, fromY = y;
+    let toX = x, toY = y;
+    let progress = 1;      // 1 = leg finished, pick a new one
+    let duration = 1500;
+    let last = performance.now();
+
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    function pickNextLeg() {
+      fromX = x;
+      fromY = y;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = WANDER_MIN_DIST + Math.random() * (WANDER_MAX_DIST - WANDER_MIN_DIST);
+      toX = clamp(fromX + Math.cos(angle) * dist, bounds.minX, bounds.maxX);
+      toY = clamp(fromY + Math.sin(angle) * dist, bounds.minY, bounds.maxY);
+      duration = WANDER_MIN_TIME + Math.random() * (WANDER_MAX_TIME - WANDER_MIN_TIME);
+      progress = 0;
+    }
+
+    function frame(now) {
+      if (token !== gameToken || (phase !== "target" && phase !== "throwing")) {
+        wanderFrame = null;
+        return;
+      }
+
+      const dt = Math.min(64, now - last);
+      last = now;
+
+      // Hold still while the ball is flying.
+      if (phase === "target") {
+        if (progress >= 1) pickNextLeg();
+        progress = Math.min(1, progress + dt / duration);
+
+        const eased = progress * progress * (3 - 2 * progress);  // smoothstep
+        x = fromX + (toX - fromX) * eased;
+        y = fromY + (toY - fromY) * eased;
+
+        target.style.left = (x - 52) + "px";
+        target.style.top = (y - 52) + "px";
+      }
+
+      wanderFrame = requestAnimationFrame(frame);
+    }
+
+    wanderFrame = requestAnimationFrame(frame);
   }
 
   /* BALL VISIBILITY */
@@ -1162,6 +1240,7 @@ button {
     if (phase !== "throwing" || !current) return;
 
     phase = "captured";
+    stopWander();
     target.classList.add("captured");
 
     sound(520, .13, "sine");
